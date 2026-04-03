@@ -1,2 +1,6 @@
 .env
 .venv
+__pycahce__
+data
+*.db
+*.sqlite3
