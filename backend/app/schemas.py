@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from datetime import date
-from typing import Optional
 
 class CategoryCreate(BaseModel):
     name: str
@@ -15,4 +14,5 @@ class TaskCreate(BaseModel):
     description: str
     link: str | None
     channel: str
+    status: str
     id_parent_task: int | None
