@@ -7,7 +7,7 @@ class CategoryCreate(BaseModel):
 class CategoryGet(CategoryCreate):
     id: int
 
-class TaskCreate(BaseModel):
+class TaskBase(BaseModel):
     date_begin: date
     date_fact_end: date | None
     date_plan_end: date | None
@@ -20,9 +20,14 @@ class TaskCreate(BaseModel):
     status: str
     id_parent_task: int | None
 
-class TaskGet(TaskCreate):
+class TaskCreate(TaskBase):
+    user_ids: list[int]
+
+class TaskGet(TaskBase):
     id: int
     category: CategoryGet
+    users: list[UserGet]
+    # parent: 
 
 class UserCreate(BaseModel):
     username: str
