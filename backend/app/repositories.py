@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models import Task, Category
-from schemas import TaskCreate, CategoryCreate
+from security import get_password_hash
+from models import Task, Category, User
+from schemas import TaskCreate, CategoryCreate, UserCreate
 from sqlalchemy.orm import selectinload
 
 class TaskRepository:
@@ -32,3 +33,17 @@ class CategoryRepository:
         await self.session.commit()
         await self.session.refresh(db_category)
         return db_category
+    
+class UserRepository():
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, user: UserCreate):
+        user_data = user.model_dump()
+        password = user_data.pop("password")
+        password_hash = get_password_hash(password)
+        db_user = User(**user_data, password_hash = password_hash)
+        self.session.add(db_user)
+        await self.session.commit()
+        await self.session.refresh(db_user)
+        return db_user
