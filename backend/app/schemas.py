@@ -16,3 +16,6 @@ class TaskCreate(BaseModel):
     channel: str
     status: str
     id_parent_task: int | None
+
+class TaskGet(TaskCreate):
+    id: int

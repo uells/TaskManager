@@ -14,6 +14,11 @@ class TaskRepository:
         await self.session.commit()
         await self.session.refresh(db_task)
         return db_task
+    
+    async def get_all(self, limit: int, offset: int):
+        query = select(Task).limit(limit).offset(offset)
+        result = await self.session.execute(query)
+        return result.scalars().all()
 
 class CategoryRepository:
     session: AsyncSession
