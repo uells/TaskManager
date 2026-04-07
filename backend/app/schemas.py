@@ -4,6 +4,9 @@ from datetime import date
 class CategoryCreate(BaseModel):
     name: str
 
+class CategoryGet(CategoryCreate):
+    id: int
+
 class TaskCreate(BaseModel):
     date_begin: date
     date_fact_end: date | None
@@ -19,3 +22,17 @@ class TaskCreate(BaseModel):
 
 class TaskGet(TaskCreate):
     id: int
+    category: CategoryGet
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    fio: str
+    deportament: str
+    contract_number: str
+
+class UserGet(BaseModel):
+    id: int
+    fio: str
+    deportament: str
+    contract_number: str
