@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_async_session
-from schemas import TaskCreate, CategoryCreate
+from schemas import TaskCreate, CategoryCreate, TaskGet, CategoryGet
 from repositories import TaskRepository, CategoryRepository
 
 router = APIRouter()
@@ -16,7 +16,7 @@ async def create_category(category: CategoryCreate, session: AsyncSession = Depe
     repo = CategoryRepository(session)
     return await repo.create(category)
 
-@router.get("/posts", summary="Получить задачи")
+@router.get("/posts", summary="Получить задачи", response_model=list[TaskGet])
 async def get_tasks(limit: int, offset: int, session: AsyncSession = Depends(get_async_session)):
     repo = TaskRepository(session)
     return await repo.get_all(limit, offset)
