@@ -4,3 +4,5 @@ __pycahce__
 data
 *.db
 *.sqlite3
+
+.vscode

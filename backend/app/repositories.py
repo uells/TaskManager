@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from models import Task, Category
 from schemas import TaskCreate, CategoryCreate
+from sqlalchemy.orm import selectinload
 
 class TaskRepository:
     session: AsyncSession
@@ -16,7 +17,7 @@ class TaskRepository:
         return db_task
     
     async def get_all(self, limit: int, offset: int):
-        query = select(Task).limit(limit).offset(offset)
+        query = select(Task).options(selectinload(Task.category)).limit(limit).offset(offset)
         result = await self.session.execute(query)
         return result.scalars().all()
 
