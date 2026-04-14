@@ -29,7 +29,7 @@ def verify_token(token: str) -> int:
             headers={"WWW-Authenticate": "Bearer"}
         )
     try:
-        payload = jwt.decode(payload=token, key=JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, key=JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         user_id = payload.get("sub")
         if user_id is None:
             raise credentials_exception
