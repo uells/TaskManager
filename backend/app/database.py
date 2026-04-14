@@ -1,14 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
-import os
-from dotenv import load_dotenv
+from config import DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME
 
-load_dotenv()
-
-print(os.getenv('DB_USER'))
 DB_URL = (
-    f"postgresql+asyncpg://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}"
-    f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+    f"postgresql+asyncpg://{DB_USER}:{DB_PASS}"
+    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
 class Base(DeclarativeBase):
