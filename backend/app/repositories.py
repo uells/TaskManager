@@ -63,8 +63,14 @@ class UserRepository():
         await self.session.refresh(db_user)
         return db_user
     
-    async def get(self, user_id: int):
+    async def get_by_id(self, user_id: int):
         query = select(User).where(User.id == user_id)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
+    
+    async def get_by_username(self, username: str):
+        query = select(User).where(User.username == username)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
         
