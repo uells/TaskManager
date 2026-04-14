@@ -41,3 +41,7 @@ class UserGet(BaseModel):
     fio: str
     deportament: str
     contract_number: str
+
+class TokenGet(BaseModel):
+    access_token: str
+    token_type: str
