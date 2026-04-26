@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, datetime
 
 class CategoryCreate(BaseModel):
     name: str
@@ -44,4 +44,10 @@ class UserGet(BaseModel):
 
 class TokenGet(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
+
+class RefreshTokenCreate(BaseModel):
+    id_user: int
+    token: str
+    expires_at: datetime
