@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Date, ForeignKey
 from database import Base
-from datetime import date
+from datetime import date, datetime
 from typing import List
 
 class Category(Base):
@@ -52,4 +52,10 @@ class CoExecutor(Base):
     id_task: Mapped[int] = mapped_column(ForeignKey("tasks.id"))
     id_user: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    id_user: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    token: Mapped[str]
+    expires_at: Mapped[datetime]
