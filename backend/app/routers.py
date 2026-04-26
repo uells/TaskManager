@@ -11,7 +11,7 @@ async def create_user(user: UserCreate, session: SessionDep):
     repo = UserRepository(session)
     return await repo.create(user)
 
-@router.post("/login", summary="Аутентификация пользователя", response_model=TokenGet)
+@router.post("/auth/login", summary="Аутентификация пользователя", response_model=TokenGet)
 async def get_token(async_session: SessionDep, form: LoginFormDep, response: Response):
     invalid_credentials_exp = HTTPException(
             status_code=401,
@@ -36,15 +36,11 @@ async def get_token(async_session: SessionDep, form: LoginFormDep, response: Res
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        path="/api/v1/refresh"
+        path="/api/v1/auth"
     )
-    token_data = {
-        "access_token": create_access_token(user.id),
-        "token_type": "Bearer"
-    }
-    return token_data
+    return TokenGet(access_token= create_access_token(user.id), token_type="Bearer")
 
-@router.post("/refresh", summary="Обновление access-токена", response_model=TokenGet)
+@router.post("/auth/refresh", summary="Обновление access-токена", response_model=TokenGet)
 async def refresh_tokens(async_session: SessionDep, request: Request, response: Response):
     invalid_credentials_exp = HTTPException(
             status_code=401,
@@ -71,10 +67,18 @@ async def refresh_tokens(async_session: SessionDep, request: Request, response: 
         key="refresh_token",
         value=new_refresh_token,
         httponly=True,
-        path="/api/v1/refresh"
+        path="/api/v1/auth"
     )
     return TokenGet(access_token=create_access_token(refresh_token_db.id_user), token_type="Bearer")
-    
+
+@router.post("/auth/logout", summary="Инвалидация refresh токена")
+async def logout(async_session: SessionDep, request: Request, response: Response):
+    refresh_token_repo = RefreshTokenRepository(async_session)
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token is None:
+        return
+    await refresh_token_repo.delete(refresh_token)
+    response.delete_cookie(key="refresh_token", path="/api/v1/auth")
 
 @router.post("/task", summary="Создание задачи", response_model=TaskGet)
 async def create_task(task: TaskCreate, session: SessionDep, user: UserDep):
