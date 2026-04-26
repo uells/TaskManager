@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import TaskCreate, CategoryCreate, TaskGet, CategoryGet, TokenGet, UserCreate, UserGet
-from repositories import TaskRepository, CategoryRepository, UserRepository
+from schemas import TaskCreate, CategoryCreate, TaskGet, CategoryGet, TokenGet, UserCreate, UserGet, RefreshTokenCreate
+from repositories import TaskRepository, CategoryRepository, UserRepository, RefreshTokenRepository
 from dependencies import SessionDep, LoginFormDep, UserDep
-from security import verify_password_hash, DUMMY_HASH, create_access_token
-
+from security import verify_password_hash, DUMMY_HASH, create_access_token, create_refresh_token
 router = APIRouter()
 
 @router.post("/user", summary="Создание пользователя", response_model=UserGet)
@@ -17,15 +16,24 @@ async def get_token(async_session: SessionDep, form: LoginFormDep):
             status_code=401,
             detail="Invalid credentials"
         )
-    repo = UserRepository(async_session)
-    user = await repo.get_by_username(form.username)
+    user_repo = UserRepository(async_session)
+    user = await user_repo.get_by_username(form.username)
     if user is None:
         verify_password_hash(form.password, DUMMY_HASH)
         raise invalid_credentials_exp
     if not verify_password_hash(form.password, user.password_hash):
         raise invalid_credentials_exp
+    refresh_token, expires_at = create_refresh_token()
+    refresh_token_schemas = RefreshTokenCreate(
+        id_user=user.id,
+        token=refresh_token,
+        expires_at=expires_at
+        )
+    refresh_token_repo = RefreshTokenRepository(async_session)
+    await refresh_token_repo.create(refresh_token_schemas)
     response = {
         "access_token": create_access_token(user.id),
+        "refresh_token": refresh_token,
         "token_type": "Bearer"
     }
     return response
