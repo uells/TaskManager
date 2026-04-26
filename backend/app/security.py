@@ -2,8 +2,9 @@ from pwdlib import PasswordHash
 from datetime import datetime, timedelta
 import jwt
 from jwt.exceptions import InvalidTokenError
-from config import JWT_SECRET_KEY, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
+from config import JWT_SECRET_KEY, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, REFRESH_TOKEN_EXPIRATION_DAYS
 from fastapi import HTTPException
+from uuid import uuid4
 
 password_hash = PasswordHash.recommended()
 
@@ -36,3 +37,8 @@ def verify_token(token: str) -> int:
         return int(user_id)
     except InvalidTokenError:
         raise credentials_exception
+
+def create_refresh_token():
+    token = str(uuid4())
+    expires_at = datetime.now() + timedelta(days=REFRESH_TOKEN_EXPIRATION_DAYS)
+    return (token, expires_at)
