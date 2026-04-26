@@ -44,7 +44,6 @@ class UserGet(BaseModel):
 
 class TokenGet(BaseModel):
     access_token: str
-    refresh_token: str
     token_type: str
 
 class RefreshTokenCreate(BaseModel):
