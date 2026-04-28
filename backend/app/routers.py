@@ -107,3 +107,13 @@ async def get_task(id_task: int, session: SessionDep):
         raise not_found_exp
     return task
 
+@router.delete("/task/{id_task}", summary="Удаление задачи по id", status_code=204)
+async def delete_task(id_task: int, session: SessionDep):
+    not_found_exp = HTTPException(
+        status_code=404,
+        detail="Not found"
+    )
+    repo = TaskRepository(session)
+    is_deleted = await repo.delete(id_task)
+    if not is_deleted:
+        raise not_found_exp

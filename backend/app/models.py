@@ -19,14 +19,14 @@ class Task(Base):
     date_begin: Mapped[date] = mapped_column(Date)
     date_fact_end: Mapped[date | None] = mapped_column(Date)
     date_plan_end: Mapped[date | None] = mapped_column(Date)
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
     author: Mapped[str]
     name: Mapped[str]
     description: Mapped[str]
     link: Mapped[str | None]
     channel: Mapped[str]
     status: Mapped[str]
-    id_parent_task: Mapped[int | None] = mapped_column(ForeignKey("tasks.id"))
+    id_parent_task: Mapped[int | None] = mapped_column(ForeignKey("tasks.id", ondelete="SET NULL"))
 
     users: Mapped[List[User]] = relationship("User", secondary="co_executors", back_populates="tasks")
     category: Mapped[Category] = relationship("Category", back_populates="tasks")

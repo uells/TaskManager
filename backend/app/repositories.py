@@ -41,6 +41,14 @@ class TaskRepository:
         query = select(Task).options(selectinload(Task.category), selectinload(Task.users)).limit(limit).offset(offset)
         result = await self.session.execute(query)
         return result.scalars().all()
+    
+    async def delete(self, id_task: int):
+        db_task =  await self.get(id_task)
+        if db_task is None:
+            return False
+        await self.session.delete(db_task)
+        await self.session.commit()
+        return True
 
 class CategoryRepository:
     session: AsyncSession
