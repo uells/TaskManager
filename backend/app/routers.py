@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
-from schemas import TaskCreate, CategoryCreate, TaskGet, CategoryGet, TokenGet, UserCreate, UserGet, RefreshTokenCreate
+from schemas import TaskCreate, CategoryCreate, TaskGet, TaskUpdate,  CategoryGet, TokenGet, UserCreate, UserGet, RefreshTokenCreate
 from repositories import TaskRepository, CategoryRepository, UserRepository, RefreshTokenRepository
 from dependencies import SessionDep, LoginFormDep, UserDep
 from security import verify_password_hash, DUMMY_HASH, create_access_token, create_refresh_token
@@ -117,3 +117,9 @@ async def delete_task(id_task: int, session: SessionDep):
     is_deleted = await repo.delete(id_task)
     if not is_deleted:
         raise not_found_exp
+    
+@router.put("/task/{id_task}", summary="Полное обновление задачи", response_model=TaskGet)
+async def update_task(id_task: int, task: TaskUpdate, session: SessionDep):
+    repo = TaskRepository(session)
+    return await repo.update(id_task, task)
+     

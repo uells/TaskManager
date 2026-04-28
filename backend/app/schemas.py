@@ -23,6 +23,9 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     user_ids: list[int]
 
+class TaskUpdate(TaskCreate):
+    pass
+
 class TaskGet(TaskBase):
     id: int
     category: CategoryGet

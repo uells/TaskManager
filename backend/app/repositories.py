@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from security import get_password_hash
 from models import Task, Category, User, RefreshToken
-from schemas import TaskCreate, CategoryCreate, UserCreate, RefreshTokenCreate
+from schemas import TaskCreate, CategoryCreate, UserCreate, RefreshTokenCreate, TaskUpdate
 from sqlalchemy.orm import selectinload
 
 class TaskRepository:
@@ -49,6 +49,24 @@ class TaskRepository:
         await self.session.delete(db_task)
         await self.session.commit()
         return True
+    
+    async def update(self, id_task: int, task: TaskUpdate):
+        task_data = task.model_dump()
+        db_task = await self.get(id_task)
+        if db_task is None:
+            raise HTTPException(404, "Task not foud")
+
+        user_ids = task_data.pop("user_ids")
+        query = select(User).where(User.id.in_(user_ids))
+        users = await self.session.execute(query)
+        users = users.scalars().all()
+        if (len(users) != len(user_ids)):
+            raise HTTPException(404, "Some users not found")
+        for key, value in task_data.items():
+            setattr(db_task, key, value)
+        db_task.users = users
+        await self.session.commit()
+        return db_task
 
 class CategoryRepository:
     session: AsyncSession
