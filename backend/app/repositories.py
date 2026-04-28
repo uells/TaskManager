@@ -85,6 +85,14 @@ class CategoryRepository:
         result = await self.session.execute(query)
         return result.scalars().all()
     
+    async def delete(self, id_category: int):
+        query = delete(Category).where(Category.id == id_category)
+        result = await self.session.execute(query)
+        if result.rowcount == 0:
+            return False
+        await self.session.commit()
+        return True
+    
 class UserRepository():
     def __init__(self, session: AsyncSession):
         self.session = session

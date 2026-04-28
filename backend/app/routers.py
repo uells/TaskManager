@@ -90,6 +90,13 @@ async def get_categories(session: SessionDep):
     repo = CategoryRepository(session)
     return await repo.get_all()
 
+@router.delete("/category/{id_category}", summary="Удаление категории", status_code=204)
+async def delete_category(id_category: int, session: SessionDep):
+    repo = CategoryRepository(session)
+    is_deleted = await repo.delete(id_category)
+    if  not is_deleted:
+        raise HTTPException(404, "Category not found")
+
 @router.post("/task", summary="Создание задачи", response_model=TaskGet)
 async def create_task(task: TaskCreate, session: SessionDep, user: UserDep):
     repo = TaskRepository(session)
