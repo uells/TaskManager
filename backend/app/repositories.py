@@ -80,6 +80,11 @@ class CategoryRepository:
         await self.session.refresh(db_category)
         return db_category
     
+    async def get_all(self):
+        query = select(Category)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+    
 class UserRepository():
     def __init__(self, session: AsyncSession):
         self.session = session

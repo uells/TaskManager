@@ -80,15 +80,20 @@ async def logout(async_session: SessionDep, request: Request, response: Response
     await refresh_token_repo.delete(refresh_token)
     response.delete_cookie(key="refresh_token", path="/api/v1/auth")
 
-@router.post("/task", summary="Создание задачи", response_model=TaskGet)
-async def create_task(task: TaskCreate, session: SessionDep, user: UserDep):
-    repo = TaskRepository(session)
-    return await repo.create(task)
-
 @router.post("/category", summary="Создание категории", response_model=CategoryGet)
 async def create_category(category: CategoryCreate, session: SessionDep, user: UserDep):
     repo = CategoryRepository(session)
     return await repo.create(category)
+
+@router.get("/category", summary="Получение списка категорий", response_model=list[CategoryGet])
+async def get_categories(session: SessionDep):
+    repo = CategoryRepository(session)
+    return await repo.get_all()
+
+@router.post("/task", summary="Создание задачи", response_model=TaskGet)
+async def create_task(task: TaskCreate, session: SessionDep, user: UserDep):
+    repo = TaskRepository(session)
+    return await repo.create(task)
 
 @router.get("/task", summary="Получение задач", response_model=list[TaskGet])
 async def get_tasks(limit: int, offset: int, session: SessionDep, user: UserDep):
@@ -122,4 +127,3 @@ async def delete_task(id_task: int, session: SessionDep):
 async def update_task(id_task: int, task: TaskUpdate, session: SessionDep):
     repo = TaskRepository(session)
     return await repo.update(id_task, task)
-     
