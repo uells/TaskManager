@@ -95,3 +95,15 @@ async def get_tasks(limit: int, offset: int, session: SessionDep, user: UserDep)
     repo = TaskRepository(session)
     return await repo.get_all(limit, offset)
 
+@router.get("/task/{id_task}", summary="Получение одной задачи по id", response_model=TaskGet)
+async def get_task(id_task: int, session: SessionDep):
+    not_found_exp = HTTPException(
+        status_code=404,
+        detail="Not found"
+    )
+    repo = TaskRepository(session)
+    task = await repo.get(id_task)
+    if task is None:
+        raise not_found_exp
+    return task
+

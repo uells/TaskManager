@@ -32,6 +32,11 @@ class TaskRepository:
         result = await self.session.execute(query)
         return result.scalar_one()
     
+    async def get(self, task_id: int):
+        query = select(Task).where(Task.id == task_id).options(selectinload(Task.category), selectinload(Task.users))
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+    
     async def get_all(self, limit: int, offset: int):
         query = select(Task).options(selectinload(Task.category), selectinload(Task.users)).limit(limit).offset(offset)
         result = await self.session.execute(query)
