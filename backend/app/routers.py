@@ -6,11 +6,6 @@ from security import verify_password_hash, DUMMY_HASH, create_access_token, crea
 from datetime import datetime
 router = APIRouter()
 
-@router.post("/user", summary="Создание пользователя", response_model=UserGet)
-async def create_user(user: UserCreate, session: SessionDep):
-    repo = UserRepository(session)
-    return await repo.create(user)
-
 @router.post("/auth/login", summary="Аутентификация пользователя", response_model=TokenGet)
 async def get_token(async_session: SessionDep, form: LoginFormDep, response: Response):
     invalid_credentials_exp = HTTPException(
@@ -79,6 +74,16 @@ async def logout(async_session: SessionDep, request: Request, response: Response
         return
     await refresh_token_repo.delete(refresh_token)
     response.delete_cookie(key="refresh_token", path="/api/v1/auth")
+
+@router.post("/user", summary="Создание пользователя", response_model=UserGet)
+async def create_user(user: UserCreate, session: SessionDep):
+    repo = UserRepository(session)
+    return await repo.create(user)
+
+@router.get("/user", summary="Получение списка всех пользователей", response_model=list[UserGet])
+async def get_users(session: SessionDep):
+    repo = UserRepository(session)
+    return await repo.get_all()
 
 @router.post("/category", summary="Создание категории", response_model=CategoryGet)
 async def create_category(category: CategoryCreate, session: SessionDep, user: UserDep):
