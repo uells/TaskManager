@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from security import get_password_hash
 from models import Task, Category, User, RefreshToken
-from schemas import TaskCreate, CategoryCreate, UserCreate, RefreshTokenCreate, TaskUpdate
+from schemas import TaskCreate, CategoryCreate, UserCreate, RefreshTokenCreate, TaskUpdate, TaskFilter
 from sqlalchemy.orm import selectinload
-
+from datetime import date
 class TaskRepository:
     session: AsyncSession
     def __init__(self, session: AsyncSession):
@@ -37,8 +37,17 @@ class TaskRepository:
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
     
-    async def get_all(self, limit: int, offset: int):
-        query = select(Task).options(selectinload(Task.category), selectinload(Task.users)).limit(limit).offset(offset)
+    async def get_list(self, limit: int, offset: int, filter: TaskFilter):
+        query = select(Task).options(selectinload(Task.category), selectinload(Task.users))
+        if filter.date_from:
+            query = query.where(Task.date_begin >= filter.date_from)
+        if filter.date_to:
+            query = query.where(Task.date_begin <= filter.date_to)
+        if filter.id_user:
+            query = query.where(Task.users.any(User.id == filter.id_user))
+        if filter.status:
+            query = query.where(Task.status == filter.status)
+        query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)
         return result.scalars().all()
     
