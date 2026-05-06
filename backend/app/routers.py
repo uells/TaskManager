@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
-from schemas import TaskCreate, CategoryCreate, TaskGet, TaskUpdate,  CategoryGet, TokenGet, UserCreate, UserGet, RefreshTokenCreate
+from schemas import TaskCreate, CategoryCreate, TaskFilter, TaskGet, TaskUpdate,  CategoryGet, TokenGet, UserCreate, UserGet, RefreshTokenCreate
 from repositories import TaskRepository, CategoryRepository, UserRepository, RefreshTokenRepository
-from dependencies import SessionDep, LoginFormDep, UserDep
+from dependencies import SessionDep, LoginFormDep, TaskFilterDep, UserDep
 from security import verify_password_hash, DUMMY_HASH, create_access_token, create_refresh_token
 from datetime import datetime
 router = APIRouter()
@@ -67,7 +67,7 @@ async def refresh_tokens(async_session: SessionDep, request: Request, response: 
     return TokenGet(access_token=create_access_token(refresh_token_db.id_user), token_type="Bearer")
 
 @router.post("/auth/logout", summary="Инвалидация refresh токена")
-async def logout(async_session: SessionDep, request: Request, response: Response):
+async def logout(async_session: SessionDep, request: Request, response: Response, _user: UserDep):
     refresh_token_repo = RefreshTokenRepository(async_session)
     refresh_token = request.cookies.get("refresh_token")
     if refresh_token is None:
@@ -81,39 +81,39 @@ async def create_user(user: UserCreate, session: SessionDep):
     return await repo.create(user)
 
 @router.get("/user", summary="Получение списка всех пользователей", response_model=list[UserGet])
-async def get_users(session: SessionDep):
+async def get_users(session: SessionDep, _user: UserDep):
     repo = UserRepository(session)
     return await repo.get_all()
 
 @router.post("/category", summary="Создание категории", response_model=CategoryGet)
-async def create_category(category: CategoryCreate, session: SessionDep, user: UserDep):
+async def create_category(category: CategoryCreate, session: SessionDep, _user: UserDep):
     repo = CategoryRepository(session)
     return await repo.create(category)
 
 @router.get("/category", summary="Получение списка категорий", response_model=list[CategoryGet])
-async def get_categories(session: SessionDep):
+async def get_categories(session: SessionDep, _user: UserDep):
     repo = CategoryRepository(session)
     return await repo.get_all()
 
 @router.delete("/category/{id_category}", summary="Удаление категории", status_code=204)
-async def delete_category(id_category: int, session: SessionDep):
+async def delete_category(id_category: int, session: SessionDep, _user: UserDep):
     repo = CategoryRepository(session)
     is_deleted = await repo.delete(id_category)
     if  not is_deleted:
         raise HTTPException(404, "Category not found")
 
 @router.post("/task", summary="Создание задачи", response_model=TaskGet)
-async def create_task(task: TaskCreate, session: SessionDep, user: UserDep):
+async def create_task(task: TaskCreate, session: SessionDep, _user: UserDep):
     repo = TaskRepository(session)
     return await repo.create(task)
 
 @router.get("/task", summary="Получение задач", response_model=list[TaskGet])
-async def get_tasks(limit: int, offset: int, session: SessionDep, user: UserDep):
+async def get_tasks(filter: TaskFilterDep, session: SessionDep, _user: UserDep, limit: int = 10, offset: int = 0):
     repo = TaskRepository(session)
-    return await repo.get_all(limit, offset)
+    return await repo.get_list(limit, offset, filter)
 
 @router.get("/task/{id_task}", summary="Получение одной задачи по id", response_model=TaskGet)
-async def get_task(id_task: int, session: SessionDep):
+async def get_task(id_task: int, session: SessionDep, _user: UserDep):
     not_found_exp = HTTPException(
         status_code=404,
         detail="Not found"
@@ -125,7 +125,7 @@ async def get_task(id_task: int, session: SessionDep):
     return task
 
 @router.delete("/task/{id_task}", summary="Удаление задачи по id", status_code=204)
-async def delete_task(id_task: int, session: SessionDep):
+async def delete_task(id_task: int, session: SessionDep, _user: UserDep):
     not_found_exp = HTTPException(
         status_code=404,
         detail="Not found"
@@ -136,6 +136,6 @@ async def delete_task(id_task: int, session: SessionDep):
         raise not_found_exp
     
 @router.put("/task/{id_task}", summary="Полное обновление задачи", response_model=TaskGet)
-async def update_task(id_task: int, task: TaskUpdate, session: SessionDep):
+async def update_task(id_task: int, task: TaskUpdate, session: SessionDep, _user: UserDep):
     repo = TaskRepository(session)
     return await repo.update(id_task, task)
