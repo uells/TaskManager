@@ -11,7 +11,7 @@ class TaskBase(BaseModel):
     date_begin: date
     date_fact_end: date | None
     date_plan_end: date | None
-    category_id: int
+    category_id: int | None
     author: str
     name: str
     description: str
@@ -22,13 +22,14 @@ class TaskBase(BaseModel):
 
 class TaskCreate(TaskBase):
     user_ids: list[int]
+    category_id: int
 
 class TaskUpdate(TaskCreate):
     pass
 
 class TaskGet(TaskBase):
     id: int
-    category: CategoryGet
+    category: CategoryGet | None
     users: list[UserGet]
     # parent: 
 
@@ -53,3 +54,9 @@ class RefreshTokenCreate(BaseModel):
     id_user: int
     token: str
     expires_at: datetime
+
+class TaskFilter(BaseModel):
+    date_from: date | None = None
+    date_to: date | None = None
+    id_user: int | None = None
+    status: str | None = None
