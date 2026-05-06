@@ -112,6 +112,11 @@ async def get_tasks(filter: TaskFilterDep, session: SessionDep, _user: UserDep, 
     repo = TaskRepository(session)
     return await repo.get_list(limit, offset, filter)
 
+@router.get("/task/authors", summary="Получение уникальных авторов для подсказок", response_model=list[str])
+async def get_authos(session: SessionDep, _user: UserDep, search: str, limit: int | None = None):
+    repo = TaskRepository(session)
+    return await repo.get_authors(search, limit)
+
 @router.get("/task/{id_task}", summary="Получение одной задачи по id", response_model=TaskGet)
 async def get_task(id_task: int, session: SessionDep, _user: UserDep):
     not_found_exp = HTTPException(

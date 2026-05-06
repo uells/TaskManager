@@ -51,6 +51,11 @@ class TaskRepository:
         result = await self.session.execute(query)
         return result.scalars().all()
     
+    async def get_authors(self, search: str, limit: int = 10):
+        query = select(Task.author).where(Task.author.ilike(f"{search}%")).distinct().limit(limit)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+    
     async def delete(self, id_task: int):
         db_task =  await self.get(id_task)
         if db_task is None:
