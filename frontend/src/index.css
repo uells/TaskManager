@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+@theme {
+  --animate-shrink: shrink 5s linear forwards;
+}
+
+@keyframes shrink {
+  0% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
