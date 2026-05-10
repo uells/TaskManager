@@ -1,6 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&display=swap");
+/* @import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap"); */
+@import url("https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap");
 @import "tailwindcss";
+@plugin "tailwind-scrollbar";
 
 @theme {
+  --font-sans: "Tektur", system-ui, sans-serif;
   --animate-shrink: shrink 5s linear forwards;
 }
 

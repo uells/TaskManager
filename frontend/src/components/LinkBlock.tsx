@@ -23,7 +23,7 @@ function LinkBlock({ link }: Props) {
 
       <button
         onClick={handlerCopy}
-        className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+        className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity ml-auto"
       >
         <Copy size={14} className="text-gray-500" />
       </button>

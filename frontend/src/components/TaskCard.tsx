@@ -21,7 +21,7 @@ function TaskCard({ task }: Props) {
 
   return (
     <div
-      className={`group/card relative bg-white border-gray-200 rounded-lg p-4 shadow-sm w-90 flex 
+      className={`group/card relative bg-white border-gray-200 rounded-lg p-4 shadow-sm flex 
         flex-col gap-y-2.5 border-l-4 ${borderColor}`}
     >
       <div className="grid grid-cols-[1fr_auto] items-start gap-1">
@@ -36,7 +36,7 @@ function TaskCard({ task }: Props) {
       <h3 className="text-gray-900 text-sm font-semibold leading-[1.45]">{task.name}</h3>
       {task.link && <LinkBlock link={task.link} />}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
         <DateLabel label="Нач" date={task.date_begin} />
         {task.date_plan_end && <DateLabel label="План" date={task.date_plan_end} />}
         {task.date_plan_end && <DateLabel label="Факт" date={task.date_plan_end} />}
