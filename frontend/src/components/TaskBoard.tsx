@@ -11,7 +11,7 @@ function TaskBoard({ tasks }: Props) {
   const [isCardView, setCardView] = useState(false);
 
   return (
-    <div className="px-10 pt-25">
+    <div className="mx-8 mt-1 flex flex-col flex-1">
       <div className="mb-5 flex justify-between items-center">
         <div className="flex items-center gap-3.5 ">
           <h2 className="text-gray-900 text-base font-semibold">Список задач</h2>
@@ -38,7 +38,7 @@ function TaskBoard({ tasks }: Props) {
       </div>
       {isCardView && (
         <div
-          className="@container h-139 overflow-y-auto scrollbar-thin 
+          className="@container flex-1 overflow-y-auto scrollbar-thin 
         scrollbar-thumb-gray-300 scrollbar-track-transparent"
         >
           <div className="justify-start grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4 gap-x-3 gap-y-5 py-0.5 pr-4">

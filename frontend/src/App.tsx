@@ -1,3 +1,4 @@
+import Pagination from "./components/Pagination";
 import TaskBoard from "./components/TaskBoard";
 import type { Task } from "./types/task";
 
@@ -95,7 +96,13 @@ function App() {
     },
   ];
 
-  return <TaskBoard tasks={tasks}></TaskBoard>;
+  return (
+    <div className="flex flex-col h-screen">
+      <div className="h-30 mx-8 my-4 bg-gray-200 shrink-0"></div>
+      <TaskBoard tasks={tasks}></TaskBoard>
+      <Pagination />
+    </div>
+  );
 }
 
 export default App;
