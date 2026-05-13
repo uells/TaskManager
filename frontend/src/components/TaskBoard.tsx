@@ -1,4 +1,4 @@
-import { LayoutGrid, TableProperties } from "lucide-react";
+import { LayoutGrid, TableProperties, View } from "lucide-react";
 import type { Task } from "../types/task";
 import { useState } from "react";
 import TaskCard from "./TaskCard";
@@ -8,7 +8,8 @@ type Props = {
 };
 
 function TaskBoard({ tasks }: Props) {
-  const [isCardView, setCardView] = useState(false);
+  const view = localStorage.getItem("cardView") === "true";
+  const [isCardView, setCardView] = useState(view);
 
   return (
     <div className="mx-8 mt-1 flex flex-col flex-1">
@@ -21,14 +22,20 @@ function TaskBoard({ tasks }: Props) {
         </div>
         <div className="flex text-gray-400">
           <button
-            onClick={() => setCardView(true)}
+            onClick={() => {
+              localStorage.setItem("cardView", "true");
+              setCardView(true);
+            }}
             className={`px-3 py-1.5 rounded-sm cursor-pointer transition-all border border-transparent
                 ${isCardView ? "shadow-sm text-gray-900  border-gray-100" : ""}`}
           >
             <LayoutGrid size={18} />
           </button>
           <button
-            onClick={() => setCardView(false)}
+            onClick={() => {
+              localStorage.setItem("cardView", "false");
+              setCardView(false);
+            }}
             className={`px-3 py-1.5 rounded-sm cursor-pointer transition-all border border-transparent
                 ${!isCardView ? "shadow-sm text-gray-900  border-gray-100" : ""}`}
           >
@@ -43,7 +50,7 @@ function TaskBoard({ tasks }: Props) {
         >
           <div className="justify-start grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4 gap-x-3 gap-y-5 py-0.5 pr-4">
             {tasks.map((task) => (
-              <TaskCard task={task} />
+              <TaskCard key={task.id} task={task} />
             ))}
           </div>
         </div>
