@@ -3,7 +3,14 @@ import { LogIn } from "lucide-react";
 import { useAuth } from "./AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 
+const ERROR_MASSAGES: Record<number, string> = {
+  401: "Неверный логин или пароль",
+  422: "Неверный формат данных",
+  500: "Ошибка сервера, попробуйте позже",
+};
+
 function LoginPage() {
+  const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState("login");
   const [inputs, setInputs] = useState({ login: "", password: "" });
   const { token, setToken } = useAuth();
@@ -25,7 +32,7 @@ function LoginPage() {
       body: formData,
     });
     if (!response.ok) {
-      console.log("Ошибка");
+      setError(ERROR_MASSAGES[response.status] ?? "Что-то пошло не так");
       return;
     }
     const jwt = await response.json();
@@ -86,6 +93,8 @@ function LoginPage() {
         >
           Войти <LogIn size={18} />
         </button>
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
     </div>
   );
