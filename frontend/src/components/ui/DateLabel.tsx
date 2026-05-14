@@ -1,4 +1,4 @@
-import { formateDate } from "../utils/date";
+import { formateDate } from "../../utils/date";
 
 type Props = {
   label: string;

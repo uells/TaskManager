@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 function Pagination() {
   return (
     <div
-      className="shrink-0 px-8 shadow-sm py-2 border border-t-gray-100 
+      className="shrink-0 px-8 py-2 border-t border-t-gray-100  
     flex items-center justify-between text-sm text-gray-500"
     >
       <span>Показано 1-5 из 5</span>

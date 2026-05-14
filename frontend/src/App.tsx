@@ -1,7 +1,7 @@
 import TaskPage from "./components/TaskPage";
-import LoginPage from "./components/LoginPage";
+import LoginPage from "./components/auth/LoginPage";
 import { Route, Routes } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (

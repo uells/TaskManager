@@ -1,7 +1,7 @@
-import { LayoutGrid, TableProperties, View } from "lucide-react";
+import { LayoutGrid, TableProperties } from "lucide-react";
 import type { Task } from "../types/task";
 import { useState } from "react";
-import TaskCard from "./TaskCard";
+import TaskCard from "./TaskCard/TaskCard";
 
 type Props = {
   tasks: Task[];
@@ -12,7 +12,7 @@ function TaskBoard({ tasks }: Props) {
   const [isCardView, setCardView] = useState(view);
 
   return (
-    <div className="mx-8 mt-1 flex flex-col flex-1">
+    <div className="mx-8 mt-1 flex flex-col flex-1 min-h-0">
       <div className="mb-5 flex justify-between items-center">
         <div className="flex items-center gap-3.5 ">
           <h2 className="text-gray-900 text-base font-semibold">Список задач</h2>
@@ -46,7 +46,7 @@ function TaskBoard({ tasks }: Props) {
       {isCardView && (
         <div
           className="@container flex-1 overflow-y-auto scrollbar-thin 
-        scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-0"
         >
           <div className="justify-start grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4 gap-x-3 gap-y-5 py-0.5 pr-4">
             {tasks.map((task) => (

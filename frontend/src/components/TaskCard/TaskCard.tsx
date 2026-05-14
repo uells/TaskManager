@@ -1,9 +1,9 @@
-import type { Task } from "../types/task";
+import type { Task } from "../../types/task";
 import StatusChip from "./StatusChip";
-import Chip from "./Chip";
-import LinkBlock from "./LinkBlock";
-import DateLabel from "./DateLabel";
-import Avatar from "./Avatar";
+import Chip from "../ui/Chip";
+import LinkBlock from "../ui/LinkBlock";
+import DateLabel from "../ui/DateLabel";
+import Avatar from "../ui/Avatar";
 import TaskActions from "./TaskActions";
 import { Mail, Tag, CornerDownRight } from "lucide-react";
 
