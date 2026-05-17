@@ -1,4 +1,4 @@
-import Pagination from "./Pagination";
+import Pagination from "./ui/Pagination";
 import TaskBoard from "./TaskBoard";
 import FullForm from "./TaskForm/FullForm";
 import type { Task } from "../types/task";
