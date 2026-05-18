@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
-from schemas import TaskCreate, CategoryCreate, TaskFilter, TaskGet, TaskUpdate,  CategoryGet, TokenGet, UserCreate, UserGet, RefreshTokenCreate
+from schemas import TaskCreate, CategoryCreate, TaskFilter, TaskGet, TaskListResponse, TaskUpdate,  CategoryGet, TokenGet, UserCreate, UserGet, RefreshTokenCreate
 from repositories import TaskRepository, CategoryRepository, UserRepository, RefreshTokenRepository
 from dependencies import SessionDep, LoginFormDep, TaskFilterDep, UserDep
 from security import verify_password_hash, DUMMY_HASH, create_access_token, create_refresh_token
@@ -107,10 +107,11 @@ async def create_task(task: TaskCreate, session: SessionDep, _user: UserDep):
     repo = TaskRepository(session)
     return await repo.create(task)
 
-@router.get("/task", summary="Получение задач", response_model=list[TaskGet])
+@router.get("/task", summary="Получение задач", response_model=TaskListResponse)
 async def get_tasks(filter: TaskFilterDep, session: SessionDep, _user: UserDep, limit: int = 10, offset: int = 0):
     repo = TaskRepository(session)
-    return await repo.get_list(limit, offset, filter)
+    items, total = await repo.get_list(limit, offset, filter)
+    return {"total": total, "items": items}
 
 @router.get("/task/authors", summary="Получение уникальных авторов для подсказок", response_model=list[str])
 async def get_authos(session: SessionDep, _user: UserDep, search: str, limit: int | None = None):

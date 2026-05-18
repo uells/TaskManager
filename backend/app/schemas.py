@@ -9,16 +9,16 @@ class CategoryGet(CategoryCreate):
 
 class TaskBase(BaseModel):
     date_begin: date
-    date_fact_end: date | None
-    date_plan_end: date | None
-    category_id: int | None
+    date_fact_end: date | None = None
+    date_plan_end: date | None = None
+    category_id: int | None = None
     author: str
     name: str
     description: str
-    link: str | None
+    link: str | None = None
     channel: str
     status: str
-    id_parent_task: int | None
+    id_parent_task: int | None = None
 
 class TaskCreate(TaskBase):
     user_ids: list[int]
@@ -60,3 +60,7 @@ class TaskFilter(BaseModel):
     date_to: date | None = None
     id_user: int | None = None
     status: str | None = None
+
+class TaskListResponse(BaseModel):
+    total: int
+    items: list[TaskGet]

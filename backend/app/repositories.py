@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import func, select, delete
 from security import get_password_hash
 from models import Task, Category, User, RefreshToken
 from schemas import TaskCreate, CategoryCreate, UserCreate, RefreshTokenCreate, TaskUpdate, TaskFilter
@@ -36,9 +36,8 @@ class TaskRepository:
         query = select(Task).where(Task.id == task_id).options(selectinload(Task.category), selectinload(Task.users))
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
-    
-    async def get_list(self, limit: int, offset: int, filter: TaskFilter):
-        query = select(Task).options(selectinload(Task.category), selectinload(Task.users))
+
+    def _apply_filters(self, query, filter: TaskFilter):
         if filter.date_from:
             query = query.where(Task.date_begin >= filter.date_from)
         if filter.date_to:
@@ -47,9 +46,20 @@ class TaskRepository:
             query = query.where(Task.users.any(User.id == filter.id_user))
         if filter.status:
             query = query.where(Task.status == filter.status)
+        return query
+    
+    async def get_list(self, limit: int, offset: int, filter: TaskFilter):
+        query = select(Task).options(selectinload(Task.category), selectinload(Task.users))
+        query = self._apply_filters(query, filter)
         query = query.limit(limit).offset(offset)
+
+        query_count = select(func.count()).select_from(Task)
+        query_count = self._apply_filters(query_count, filter)
+
+        result_count = await self.session.execute(query_count)
         result = await self.session.execute(query)
-        return result.scalars().all()
+
+        return (result.scalars().all(), result_count.scalar())
     
     async def get_authors(self, search: str, limit: int = 10):
         query = select(Task.author).where(Task.author.ilike(f"{search}%")).distinct().limit(limit)
