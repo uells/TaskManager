@@ -33,7 +33,7 @@ function TaskCard({ task }: Props) {
         <TaskActions />
       </div>
 
-      <h3 className="text-gray-900 text-sm font-semibold leading-[1.45]">{task.name}</h3>
+      <h3 className="text-gray-900 text-sm font-semibold leading-[1.45]">{task.description}</h3>
       {task.link && <LinkBlock link={task.link} />}
 
       <div className="flex gap-3 flex-wrap">

@@ -35,6 +35,6 @@ export type TaskCreate = {
   channel: TaskChannel;
   category_id: number;
   user_ids: number[];
-  link: string | null;
+  link: string;
   id_parent_task: number | null;
 };

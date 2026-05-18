@@ -11,34 +11,94 @@ import { parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import DateRangeButton from "./DateRangeButton";
 import DateButton from "./DateButton";
+import AuthorCombobox from "./AuthorCombobox";
+import UsersCombobox from "./UsersCombobox";
+import { Input } from "../ui/input";
 
 type Props = {
   onClose: () => void;
+  onSuccess: () => void;
 };
 
-function FullForm({ onClose }: Props) {
+const EMPTY_FORM: TaskCreate = {
+  name: "",
+  description: "",
+  author: "",
+  date_begin: "",
+  date_plan_end: null,
+  date_fact_end: null,
+  status: "Не начато",
+  channel: "Мессенджер",
+  category_id: 0,
+  user_ids: [],
+  link: "",
+  id_parent_task: null,
+};
+
+function FullForm({ onClose, onSuccess }: Props) {
   const [checked, setChecked] = useState(false);
   const { token } = useAuth();
-  const [formData, setFormData] = useState<TaskCreate>({
-    name: "",
-    description: "",
-    author: "",
-    date_begin: "",
-    date_plan_end: null,
-    date_fact_end: null,
-    status: "Не начато",
-    channel: "Мессенджер",
-    category_id: 0,
-    user_ids: [],
-    link: null,
-    id_parent_task: null,
-  });
+  const [formData, setFormData] = useState<TaskCreate>(EMPTY_FORM);
+
+  const handleSubmit = async () => {
+    try {
+      if (!formData.description) {
+        console.log("Незаполнено описание");
+        return;
+      }
+      if (!formData.author) {
+        console.log("Незаполнен автор");
+        return;
+      }
+      if (!formData.date_begin) {
+        console.log("Незаполнена дата начала");
+        return;
+      }
+      if (!formData.date_plan_end) {
+        console.log("Незаполнена фактическая дата");
+        return;
+      }
+      if (!formData.status) {
+        console.log("Незаполнен статус");
+        return;
+      }
+      if (!formData.channel) {
+        console.log("Незаполнен канал запроса");
+        return;
+      }
+      if (!formData.category_id) {
+        console.log("Не выбрана категория");
+        return;
+      }
+      if (formData.user_ids.length === 0) {
+        console.log("Не выбраны исполнители");
+        return;
+      }
+
+      const res = await fetch("http://localhost:8000/api/v1/task", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        console.error(res.status);
+        return;
+      }
+      await res.json();
+      setFormData(EMPTY_FORM);
+      setChecked(false);
+      onSuccess();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
-    <aside
-      className="h-screen overflow-y-auto scrollbar-thin w-100
-        scrollbar-thumb-gray-300 scrollbar-track-transparent border-l border-gray-100"
-    >
+    <aside className="h-screen shadow-md flex flex-col border-l border-gray-100 w-100">
       <header className="flex justify-between items-center gap-x-4 py-2 px-4 border-b border-gray-100">
         <h2 className="text-gray-500 text-sm uppercase font-medium tracking-wider">Создание</h2>
         <button
@@ -50,122 +110,155 @@ function FullForm({ onClose }: Props) {
         </button>
       </header>
 
-      <form onSubmit={(e) => e.preventDefault()} className="p-3 flex flex-col gap-y-4">
-        <SectionCard>
-          <FormField label="Описание" htmlFor="description" required>
-            <textarea
-              placeholder="О чем задача?"
-              rows={5}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              id="description"
-              className="text-gray-900 text-sm font-normal outline-none
+      <form onSubmit={(e) => e.preventDefault()} className="flex flex-col flex-1 min-h-0">
+        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-y-4 scrollbar-thin scrollbar-thumb-gray-300">
+          <SectionCard>
+            <FormField label="Описание" htmlFor="description" required>
+              <textarea
+                placeholder="О чем задача?"
+                rows={5}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                id="description"
+                className="text-gray-900 text-sm font-normal outline-none
             resize-none scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
-            />
-          </FormField>
-        </SectionCard>
-        <SectionCard>
-          <FormField label="Статус" required>
-            <StatusSelector
-              value={formData.status}
-              onChange={(status) => setFormData({ ...formData, status })}
-            />
-          </FormField>
-          <FormField label="Канал" required>
-            <Select
-              value={formData.channel}
-              onValueChange={(channel) =>
-                setFormData({ ...formData, channel: channel as TaskChannel })
-              }
-            >
-              <SelectTrigger id="channel" className="w-full">
-                <SelectValue placeholder="Выберите канал" />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                {TASK_CHANNELS.map((channel) => (
-                  <SelectItem key={channel} value={channel}>
-                    {channel}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
+              />
+            </FormField>
+          </SectionCard>
+          <SectionCard>
+            <FormField label="Статус" required>
+              <StatusSelector
+                value={formData.status}
+                onChange={(status) => setFormData({ ...formData, status })}
+              />
+            </FormField>
+            <FormField label="Канал" required>
+              <Select
+                value={formData.channel}
+                onValueChange={(channel) =>
+                  setFormData({ ...formData, channel: channel as TaskChannel })
+                }
+              >
+                <SelectTrigger id="channel" className="w-full">
+                  <SelectValue placeholder="Выберите канал" />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  {TASK_CHANNELS.map((channel) => (
+                    <SelectItem key={channel} value={channel}>
+                      {channel}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
 
-          <FormField label="Категория" required>
-            <CategoryCombobox
-              onChange={(category_id) => setFormData({ ...formData, category_id })}
-              categoryId={formData.category_id}
-            />
-          </FormField>
-        </SectionCard>
-        <SectionCard>
-          <FormField label="Сроки" required>
-            <div className="flex gap-x-2">
-              <DateRangeButton
-                dateBegin={formData.date_begin}
-                datePlanEnd={formData.date_plan_end}
-                onChange={({ from, to }) => {
-                  setFormData({
-                    ...formData,
-                    date_begin: from ?? "",
-                    date_plan_end: to,
-                    date_fact_end: checked ? to : formData.date_fact_end,
-                  });
-                }}
+            <FormField label="Категория" required>
+              <CategoryCombobox
+                onChange={(category_id) => setFormData({ ...formData, category_id })}
+                categoryId={formData.category_id}
               />
+            </FormField>
+          </SectionCard>
+          <SectionCard>
+            <FormField label="Сроки" required>
+              <div className="flex gap-x-2">
+                <DateRangeButton
+                  dateBegin={formData.date_begin}
+                  datePlanEnd={formData.date_plan_end}
+                  onChange={({ from, to }) => {
+                    setFormData({
+                      ...formData,
+                      date_begin: from ?? "",
+                      date_plan_end: to,
+                      date_fact_end: checked ? to : formData.date_fact_end,
+                    });
+                  }}
+                />
 
-              <DateButton
-                title="План"
-                dateFromForm={formData.date_plan_end}
-                onChange={(date) => {
-                  setFormData({
-                    ...formData,
-                    date_plan_end: date,
-                    date_fact_end: checked ? date : formData.date_fact_end,
-                  });
-                }}
-                disabledHandle={(date) => {
-                  return formData.date_begin ? date < parseISO(formData.date_begin) : false;
-                }}
-              />
+                <DateButton
+                  title="План"
+                  dateFromForm={formData.date_plan_end}
+                  onChange={(date) => {
+                    setFormData({
+                      ...formData,
+                      date_plan_end: date,
+                      date_fact_end: checked ? date : formData.date_fact_end,
+                    });
+                  }}
+                  disabledHandle={(date) => {
+                    return formData.date_begin ? date < parseISO(formData.date_begin) : false;
+                  }}
+                />
 
-              <DateButton
-                title="Факт"
-                dateFromForm={formData.date_fact_end}
-                onChange={(date) => {
-                  setFormData({
-                    ...formData,
-                    date_fact_end: date,
-                    date_plan_end: checked ? date : formData.date_plan_end,
-                  });
-                }}
-                disabledHandle={(date) => {
-                  return formData.date_begin ? date < parseISO(formData.date_begin) : false;
-                }}
+                <DateButton
+                  title="Факт"
+                  dateFromForm={formData.date_fact_end}
+                  onChange={(date) => {
+                    setFormData({
+                      ...formData,
+                      date_fact_end: date,
+                      date_plan_end: checked ? date : formData.date_plan_end,
+                    });
+                  }}
+                  disabledHandle={(date) => {
+                    return formData.date_begin ? date < parseISO(formData.date_begin) : false;
+                  }}
+                />
+              </div>
+              <div className="mt-2 flex gap-2">
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={(value) => {
+                    const isChecked = value === true;
+                    setChecked(isChecked);
+                    if (isChecked) {
+                      setFormData({ ...formData, date_fact_end: formData.date_plan_end });
+                    }
+                  }}
+                />
+                <span className="text-gray-500 text-xs font-normal">
+                  Фактическая дата совпадает с плановой
+                </span>
+              </div>
+            </FormField>
+          </SectionCard>
+          <SectionCard>
+            <FormField label="Автор" required>
+              <AuthorCombobox
+                value={formData.author}
+                onChange={(author) => setFormData({ ...formData, author })}
               />
-            </div>
-            <div className="mt-2 flex gap-2">
-              <Checkbox
-                checked={checked}
-                onCheckedChange={(value) => {
-                  const isChecked = value === true;
-                  setChecked(isChecked);
-                  if (isChecked) {
-                    setFormData({ ...formData, date_fact_end: formData.date_plan_end });
-                  }
-                }}
+            </FormField>
+            <FormField label="Исполнители" required>
+              <UsersCombobox
+                value={formData.user_ids}
+                onChange={(users: number[]) => setFormData({ ...formData, user_ids: users })}
               />
-              <span className="text-gray-500 text-xs font-normal">
-                Фактическая дата совпадает с плановой
-              </span>
-            </div>
-          </FormField>
-        </SectionCard>
-        <SectionCard>
+            </FormField>
+            <FormField label="Артефакт">
+              <Input
+                value={formData.link}
+                onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                placeholder="Вставьте ссылку..."
+              />
+            </FormField>
+          </SectionCard>
+        </div>
+
+        <div className="h-16 px-3 flex items-center border-t border-gray-100">
+          <button
+            onClick={handleSubmit}
+            className="w-full cursor-pointer bg-gray-900 text-white font-semibold rounded-md p-2 hover:bg-gray-800 active:bg-gray-700 transition-colors"
+          >
+            + Создать задачу
+          </button>
+        </div>
+
+        {/* <SectionCard>
           <div className="w-full">
             <pre className="text-xs p-2 bg-gray-50">{JSON.stringify(formData, null, 2)}</pre>
           </div>
-        </SectionCard>
+        </SectionCard> */}
       </form>
     </aside>
   );
