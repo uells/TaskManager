@@ -1,10 +1,11 @@
 import Pagination from "./ui/Pagination";
 import TaskBoard from "./TaskBoard";
 import FullForm from "./TaskForm/FullForm";
-import type { Task } from "../types/task";
+import type { Task, TaskFilters } from "../types/task";
 import { useEffect, useState } from "react";
 import { useAuth } from "./auth/AuthContext";
 import { ListPlus } from "lucide-react";
+import FiltersBar from "./FiltersBar";
 
 const ERROR_MASSAGES: Record<number, string> = {
   401: "Сессия истекла",
@@ -13,6 +14,12 @@ const ERROR_MASSAGES: Record<number, string> = {
 };
 
 function TaskPage() {
+  const [filters, setFilters] = useState<TaskFilters>({
+    status: null,
+    date_from: null,
+    date_to: null,
+    id_user: null,
+  });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,14 +32,19 @@ function TaskPage() {
   const fetchTask = async () => {
     try {
       const offset = (page - 1) * LIMIT;
-      const response = await fetch(
-        `http://localhost:8000/api/v1/task?limit=${LIMIT}&offset=${offset}`,
-        {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
+      const params = new URLSearchParams();
+      params.set("limit", String(LIMIT));
+      params.set("offset", String(offset));
+      if (filters.status) params.set("status", String(filters.status));
+      if (filters.date_from) params.set("date_from", filters.date_from);
+      if (filters.date_to) params.set("date_to", filters.date_to);
+      if (filters.id_user) params.set("id_user", String(filters.id_user));
+
+      const response = await fetch(`http://localhost:8000/api/v1/task?${params.toString()}`, {
+        headers: {
+          Authorization: "Bearer " + token,
         },
-      );
+      });
       if (!response.ok) {
         setError(ERROR_MASSAGES[response.status] ?? "Что-то пошло не так");
       } else {
@@ -48,6 +60,11 @@ function TaskPage() {
     }
   };
 
+  const handleFilterChange = (newFilter: TaskFilters) => {
+    setFilters(newFilter);
+    setPage(1);
+  };
+
   useEffect(() => {
     // eslint-disable-next-line
     fetchTask();
@@ -55,7 +72,7 @@ function TaskPage() {
       setError(null);
       setLoading(false);
     };
-  }, [page]);
+  }, [page, filters]);
 
   if (loading)
     return <div className="text-4xl align-middle font-bold text-gray-400">Загрузка...</div>;
@@ -64,7 +81,7 @@ function TaskPage() {
   return (
     <div className="flex h-screen">
       <div className="flex flex-col flex-1 min-h-0">
-        <div className="h-30 mx-8 my-4 bg-gray-200 shrink-0"></div>
+        <FiltersBar filters={filters} onChange={handleFilterChange} />
         {tasks && <TaskBoard total={total} tasks={tasks} />}
         <Pagination total={total} limit={LIMIT} page={page} onPageChange={setPage} />
       </div>

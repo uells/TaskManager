@@ -38,3 +38,10 @@ export type TaskCreate = {
   link: string;
   id_parent_task: number | null;
 };
+
+export type TaskFilters = {
+  status: string | null;
+  date_from: string | null;
+  date_to: string | null;
+  id_user: number | null;
+};

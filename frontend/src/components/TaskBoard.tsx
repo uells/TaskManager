@@ -13,7 +13,7 @@ function TaskBoard({ tasks, total }: Props) {
   const [isCardView, setCardView] = useState(view);
 
   return (
-    <div className="mx-8 mt-1 flex flex-col flex-1 min-h-0">
+    <div className="mx-8 mt-5 flex flex-col flex-1 min-h-0">
       <div className="mb-5 flex justify-between items-center">
         <div className="flex items-center gap-3.5 ">
           <h2 className="text-gray-900 text-base font-semibold">Список задач</h2>
