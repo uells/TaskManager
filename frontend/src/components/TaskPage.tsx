@@ -17,35 +17,45 @@ function TaskPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addFormIsOpen, setAddFormIsOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const { token } = useAuth();
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/api/v1/task", {
+  const LIMIT = 8;
+
+  const fetchTask = async () => {
+    try {
+      const offset = (page - 1) * LIMIT;
+      const response = await fetch(
+        `http://localhost:8000/api/v1/task?limit=${LIMIT}&offset=${offset}`,
+        {
           headers: {
             Authorization: "Bearer " + token,
           },
-        });
-        if (!response.ok) {
-          setError(ERROR_MASSAGES[response.status] ?? "Что-то пошло не так");
-        } else {
-          const data = await response.json();
-          setTasks(data);
-        }
-      } catch (e) {
-        console.error("Failed to fetch tasks:", e);
-        setError("Не удалось загрузить задачи");
-      } finally {
-        setLoading(false);
+        },
+      );
+      if (!response.ok) {
+        setError(ERROR_MASSAGES[response.status] ?? "Что-то пошло не так");
+      } else {
+        const data = await response.json();
+        setTasks(data.items);
+        setTotal(data.total);
       }
-    };
+    } catch (e) {
+      console.error("Failed to fetch tasks:", e);
+      setError("Не удалось загрузить задачи");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    // eslint-disable-next-line
+    fetchTask();
     return () => {
       setError(null);
       setLoading(false);
     };
-  }, []);
+  }, [page]);
 
   if (loading)
     return <div className="text-4xl align-middle font-bold text-gray-400">Загрузка...</div>;
@@ -55,8 +65,8 @@ function TaskPage() {
     <div className="flex h-screen">
       <div className="flex flex-col flex-1 min-h-0">
         <div className="h-30 mx-8 my-4 bg-gray-200 shrink-0"></div>
-        {tasks && <TaskBoard tasks={tasks}></TaskBoard>}
-        <Pagination />
+        {tasks && <TaskBoard total={total} tasks={tasks} />}
+        <Pagination total={total} limit={LIMIT} page={page} onPageChange={setPage} />
       </div>
       {!addFormIsOpen ? (
         <button
@@ -71,7 +81,7 @@ function TaskPage() {
           </span>
         </button>
       ) : (
-        <FullForm onClose={() => setAddFormIsOpen(false)} />
+        <FullForm onSuccess={fetchTask} onClose={() => setAddFormIsOpen(false)} />
       )}
     </div>
   );

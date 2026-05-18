@@ -4,10 +4,11 @@ import { useState } from "react";
 import TaskCard from "./TaskCard/TaskCard";
 
 type Props = {
+  total: number;
   tasks: Task[];
 };
 
-function TaskBoard({ tasks }: Props) {
+function TaskBoard({ tasks, total }: Props) {
   const view = localStorage.getItem("cardView") === "true";
   const [isCardView, setCardView] = useState(view);
 
@@ -17,7 +18,7 @@ function TaskBoard({ tasks }: Props) {
         <div className="flex items-center gap-3.5 ">
           <h2 className="text-gray-900 text-base font-semibold">Список задач</h2>
           <span className="text-sm w-6 h-6 border border-gray-300 rounded-full flex justify-center items-center">
-            {tasks.length}
+            {total}
           </span>
         </div>
         <div className="flex text-gray-400">
