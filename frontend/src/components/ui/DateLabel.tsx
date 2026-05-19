@@ -1,4 +1,4 @@
-import { formateDate } from "../../utils/date";
+import { formatDate } from "../../utils/date";
 
 type Props = {
   label: string;
@@ -10,7 +10,7 @@ function DateLabel({ label, date }: Props) {
     <span className="flex gap-1.5 text-xs uppercase font-semibold text-gray-300">
       {label}
       <time className="text-gray-500 font-medium" dateTime={date}>
-        {formateDate(date)}
+        {formatDate(date)}
       </time>
     </span>
   );

@@ -9,16 +9,33 @@ import { useAuth } from "../auth/AuthContext";
 import CategoryCombobox from "./CategoryCombobox";
 import { parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
-import DateRangeButton from "./DateRangeButton";
-import DateButton from "./DateButton";
+import DateSinglePicker from "./DateSinglePicker";
 import AuthorCombobox from "./AuthorCombobox";
 import UsersCombobox from "./UsersCombobox";
 import { Input } from "../ui/input";
+import DateRangePicker from "./DateRangePicker";
+import DateTrigger from "./DateTrigger";
+import { formatDayMonth } from "@/utils/date";
 
 type Props = {
   onClose: () => void;
   onSuccess: () => void;
 };
+
+type Rule = {
+  field: keyof TaskCreate;
+  message: string;
+};
+
+const VALIDATION_RULES: Rule[] = [
+  { field: "description", message: "Незаполнено описание" },
+  { field: "author", message: "Незаполнен автор" },
+  { field: "date_begin", message: "Незаполнена дата начала" },
+  { field: "date_plan_end", message: "Незаполнена плановая дата" },
+  { field: "status", message: "Незаполнен статус" },
+  { field: "channel", message: "Незаполнен канал запроса" },
+  { field: "category_id", message: "Не выбрана категория" },
+];
 
 const EMPTY_FORM: TaskCreate = {
   name: "",
@@ -42,32 +59,9 @@ function FullForm({ onClose, onSuccess }: Props) {
 
   const handleSubmit = async () => {
     try {
-      if (!formData.description) {
-        console.log("Незаполнено описание");
-        return;
-      }
-      if (!formData.author) {
-        console.log("Незаполнен автор");
-        return;
-      }
-      if (!formData.date_begin) {
-        console.log("Незаполнена дата начала");
-        return;
-      }
-      if (!formData.date_plan_end) {
-        console.log("Незаполнена фактическая дата");
-        return;
-      }
-      if (!formData.status) {
-        console.log("Незаполнен статус");
-        return;
-      }
-      if (!formData.channel) {
-        console.log("Незаполнен канал запроса");
-        return;
-      }
-      if (!formData.category_id) {
-        console.log("Не выбрана категория");
+      const invalid = VALIDATION_RULES.find((rule) => !formData[rule.field]);
+      if (invalid) {
+        console.log(invalid.message);
         return;
       }
       if (formData.user_ids.length === 0) {
@@ -162,9 +156,9 @@ function FullForm({ onClose, onSuccess }: Props) {
           <SectionCard>
             <FormField label="Сроки" required>
               <div className="flex gap-x-2">
-                <DateRangeButton
-                  dateBegin={formData.date_begin}
-                  datePlanEnd={formData.date_plan_end}
+                <DateRangePicker
+                  from={formData.date_begin}
+                  to={formData.date_plan_end}
                   onChange={({ from, to }) => {
                     setFormData({
                       ...formData,
@@ -173,10 +167,11 @@ function FullForm({ onClose, onSuccess }: Props) {
                       date_fact_end: checked ? to : formData.date_fact_end,
                     });
                   }}
-                />
+                >
+                  <DateTrigger title="Начало" value={formatDayMonth(formData.date_begin)} />
+                </DateRangePicker>
 
-                <DateButton
-                  title="План"
+                <DateSinglePicker
                   dateFromForm={formData.date_plan_end}
                   onChange={(date) => {
                     setFormData({
@@ -188,10 +183,11 @@ function FullForm({ onClose, onSuccess }: Props) {
                   disabledHandle={(date) => {
                     return formData.date_begin ? date < parseISO(formData.date_begin) : false;
                   }}
-                />
+                >
+                  <DateTrigger title="План" value={formatDayMonth(formData.date_plan_end)} />
+                </DateSinglePicker>
 
-                <DateButton
-                  title="Факт"
+                <DateSinglePicker
                   dateFromForm={formData.date_fact_end}
                   onChange={(date) => {
                     setFormData({
@@ -203,7 +199,9 @@ function FullForm({ onClose, onSuccess }: Props) {
                   disabledHandle={(date) => {
                     return formData.date_begin ? date < parseISO(formData.date_begin) : false;
                   }}
-                />
+                >
+                  <DateTrigger title="Факт" value={formatDayMonth(formData.date_fact_end)} />
+                </DateSinglePicker>
               </div>
               <div className="mt-2 flex gap-2">
                 <Checkbox

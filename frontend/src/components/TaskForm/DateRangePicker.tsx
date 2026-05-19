@@ -5,26 +5,19 @@ import { ru } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
+import type { ReactNode } from "react";
 
 type Props = {
-  dateBegin: string | null;
-  datePlanEnd: string | null;
+  children: ReactNode;
+  from: string | null;
+  to: string | null;
   onChange: (range: { from: string | null; to: string | null }) => void;
 };
 
-function DateRangeButton({ dateBegin, datePlanEnd, onChange }: Props) {
+function DateRangePicker({ children, from, to, onChange }: Props) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <button
-          className="flex flex-1 flex-col text-gray-900 font-semibold rounded-md border border-gray-200
-                text-sm gap-y-1 justify-center items-center p-2.5 cursor-pointer"
-          type="button"
-        >
-          <span className="text-xs text-gray-500 font-normal uppercase">Нач</span>
-          {dateBegin ? format(parseISO(dateBegin), "d MMM", { locale: ru }) : "Выбрать"}
-        </button>
-      </PopoverTrigger>
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Card>
           <CardContent>
@@ -33,8 +26,8 @@ function DateRangeButton({ dateBegin, datePlanEnd, onChange }: Props) {
               mode="range"
               numberOfMonths={1}
               selected={{
-                from: dateBegin ? parseISO(dateBegin) : undefined,
-                to: datePlanEnd ? parseISO(datePlanEnd) : undefined,
+                from: from ? parseISO(from) : undefined,
+                to: to ? parseISO(to) : undefined,
               }}
               onSelect={(range: DateRange | undefined) => {
                 onChange({
@@ -66,4 +59,4 @@ function DateRangeButton({ dateBegin, datePlanEnd, onChange }: Props) {
   );
 }
 
-export default DateRangeButton;
+export default DateRangePicker;
