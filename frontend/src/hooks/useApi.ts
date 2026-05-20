@@ -1,4 +1,4 @@
-import { useAuth } from "../components/auth/AuthContext";
+import { useAuth } from "./useAuth";
 import { request } from "../api/client";
 
 export type AuthRequest = <T>(path: string, options?: RequestInit) => Promise<T>;

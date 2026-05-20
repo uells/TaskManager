@@ -8,7 +8,9 @@ import {
 } from "../ui/combobox";
 import { useEffect, useState } from "react";
 import type { Category } from "@/types/category";
-import { useAuth } from "../auth/AuthContext";
+import { createCategory, getCategories } from "@/api/categories";
+import { useApi } from "@/hooks/useApi";
+import { ApiError } from "@/api/client";
 
 type Props = {
   categoryId: number;
@@ -17,40 +19,40 @@ type Props = {
 
 function CategoryCombobox({ categoryId, onChange }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const { token } = useAuth();
+  const { authRequest } = useApi();
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/category", {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setCategories(data));
+    const load = async () => {
+      try {
+        const categories = await getCategories(authRequest);
+        setCategories(categories);
+      } catch (e) {
+        if (e instanceof ApiError) {
+          setError(e.message);
+        } else {
+          setError("Ошибка сети");
+        }
+      }
+    };
+    load();
   }, []);
 
   const handleAddCategory = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/category", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({ name: inputValue }),
-      });
-      if (!response.ok) {
-        console.error("Ошибка при создании категории: ", response.status);
-        return;
-      }
-      const newCategory: Category = await response.json();
-      setCategories([...categories, newCategory]);
+      setError(null);
+      const newCategory = await createCategory(inputValue, authRequest);
+      setCategories((prev) => [...prev, newCategory]);
       onChange(newCategory.id);
       setCategoryOpen(false);
     } catch (e) {
-      console.error("Ошибка соединения:", e);
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError("Ошибка сети");
+      }
     }
   };
   return (
@@ -61,7 +63,10 @@ function CategoryCombobox({ categoryId, onChange }: Props) {
       items={categories}
       itemToStringLabel={(category: Category) => category.name}
       inputValue={inputValue}
-      onInputValueChange={setInputValue}
+      onInputValueChange={(v) => {
+        setInputValue(v);
+        setError(null);
+      }}
       onOpenChange={setCategoryOpen}
     >
       <ComboboxInput placeholder="Категория" />
@@ -81,6 +86,8 @@ function CategoryCombobox({ categoryId, onChange }: Props) {
             </div>
           )}
         <ComboboxEmpty>Не найдено</ComboboxEmpty>
+        {error && <div className="p-2 text-xs text-red-500 border-b">{error}</div>}
+
         <ComboboxList>
           {(category) => (
             <ComboboxItem key={category.id} value={category}>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LogIn } from "lucide-react";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { login } from "@/api/auth";
 import { ApiError } from "@/api/client";

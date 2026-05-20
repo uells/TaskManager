@@ -7,7 +7,9 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "../ui/combobox";
-import { useAuth } from "../auth/AuthContext";
+import { useApi } from "@/hooks/useApi";
+import { getAuthors } from "@/api/users";
+import { ApiError } from "@/api/client";
 
 type Props = {
   value: string;
@@ -15,19 +17,22 @@ type Props = {
 };
 
 function AuthorCombobox({ value, onChange }: Props) {
-  const { token } = useAuth();
   const [authors, setAuthors] = useState<string[]>([]);
-  //   const [inputValue, setInputValue] = useState("");
-
+  const [error, setError] = useState<string | null>(null);
+  const { authRequest } = useApi();
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetch(
-        `http://localhost:8000/api/v1/task/authors?limit=10&search=${encodeURIComponent(value)}`,
-        { headers: { Authorization: "Bearer " + token } },
-      )
-        .then((res) => res.json())
-        .then((data) => setAuthors(data));
-    }, 500);
+    const timer = setTimeout(async () => {
+      try {
+        const authors = await getAuthors(value, authRequest);
+        setAuthors(authors);
+      } catch (e) {
+        if (e instanceof ApiError) {
+          setError(e.message);
+        } else {
+          setError("Ошибка сети");
+        }
+      }
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [value]);
@@ -38,11 +43,14 @@ function AuthorCombobox({ value, onChange }: Props) {
       value={value || null}
       onValueChange={(picked: string | null) => onChange(picked ?? "")}
       inputValue={value}
-      onInputValueChange={(value: string) => onChange(value ?? "")}
+      onInputValueChange={(value: string) => {
+        onChange(value ?? "");
+        setError(null);
+      }}
     >
       <ComboboxInput placeholder="Начните вводить..." />
       <ComboboxContent>
-        <ComboboxEmpty>Не найдено</ComboboxEmpty>
+        {error && <div className="p-2 text-xs text-red-500 border-b">{error}</div>}
         <ComboboxList>
           {(author: string) => (
             <ComboboxItem key={author} value={author}>

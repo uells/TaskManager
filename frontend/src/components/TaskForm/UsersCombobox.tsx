@@ -12,46 +12,34 @@ import {
   useComboboxAnchor,
 } from "../ui/combobox";
 import type { User } from "@/types/user";
-import { useAuth } from "../auth/AuthContext";
+import { shortenFullName } from "@/utils/users";
+import { getUsers } from "@/api/users";
+import { useApi } from "@/hooks/useApi";
+import { ApiError } from "@/api/client";
 
 type Props = {
   value: number[];
   onChange: (ids: number[]) => void;
 };
 
-function shortenFullName(fullName: string): string {
-  const parted = fullName.split(" ");
-  if (parted.length === 0) {
-    return "";
-  }
-  if (parted.length === 1) {
-    return parted[0];
-  }
-  if (parted.length === 2) {
-    const family = parted[0];
-    const name = parted[1][0] + ".";
-    return family + " " + name;
-  }
-
-  const family = parted[0];
-  const name = parted[1][0] + ".";
-  const patronymic = parted[2][0] + ".";
-  return family + " " + name + " " + patronymic;
-}
-
 function UsersCombobox({ value, onChange }: Props) {
-  const { token } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const { authRequest } = useApi();
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/user", {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
-      });
+    const load = async () => {
+      try {
+        const users = await getUsers(authRequest);
+        setUsers(users);
+      } catch (e) {
+        if (e instanceof ApiError) {
+          setError(e.message);
+        } else {
+          setError("Ошибка сети");
+        }
+      }
+    };
+    load();
   }, []);
 
   const anchor = useComboboxAnchor();
@@ -78,6 +66,7 @@ function UsersCombobox({ value, onChange }: Props) {
         </ComboboxValue>
       </ComboboxChips>
       <ComboboxContent className="min-w-70">
+        {error && <div className="p-2 text-xs text-red-500 border-b">{error}</div>}
         <ComboboxEmpty>Исполнитель не найден</ComboboxEmpty>
         <ComboboxList>
           {(user: User) => (
