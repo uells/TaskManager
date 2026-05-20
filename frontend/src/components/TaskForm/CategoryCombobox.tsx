@@ -13,11 +13,12 @@ import { useApi } from "@/hooks/useApi";
 import { ApiError } from "@/api/client";
 
 type Props = {
-  categoryId: number;
-  onChange: (categoryId: number) => void;
+  categoryId: number | null;
+  onChange: (categoryId: number | null) => void;
+  allowCreate?: boolean;
 };
 
-function CategoryCombobox({ categoryId, onChange }: Props) {
+function CategoryCombobox({ categoryId, onChange, allowCreate = false }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -58,7 +59,7 @@ function CategoryCombobox({ categoryId, onChange }: Props) {
   return (
     <Combobox
       value={categories.find((category: Category) => category.id === categoryId) ?? null}
-      onValueChange={(category: Category | null) => onChange(category?.id ?? 0)}
+      onValueChange={(category: Category | null) => onChange(category?.id ?? null)}
       open={categoryOpen}
       items={categories}
       itemToStringLabel={(category: Category) => category.name}
@@ -69,9 +70,10 @@ function CategoryCombobox({ categoryId, onChange }: Props) {
       }}
       onOpenChange={setCategoryOpen}
     >
-      <ComboboxInput placeholder="Категория" />
+      <ComboboxInput className="truncate" placeholder="Категория" showClear />
       <ComboboxContent>
         {inputValue &&
+          allowCreate &&
           !categories.some(
             (c) => c.name.trim().toLowerCase() === inputValue.trim().toLowerCase(),
           ) && (

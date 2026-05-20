@@ -15,6 +15,7 @@ export async function getTask(
   if (filters.date_from) params.set("date_from", filters.date_from);
   if (filters.date_to) params.set("date_to", filters.date_to);
   if (filters.id_user) params.set("id_user", String(filters.id_user));
+  if (filters.category_id) params.set("category_id", String(filters.category_id));
 
   const data = await authRequest<{ total: number; items: Task[] }>(`/task?${params.toString()}`);
   return data;

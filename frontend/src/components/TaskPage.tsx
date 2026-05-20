@@ -13,6 +13,7 @@ function TaskPage() {
     date_from: null,
     date_to: null,
     id_user: null,
+    category_id: null,
   });
   const [addFormIsOpen, setAddFormIsOpen] = useState(false);
   const [page, setPage] = useState(1);

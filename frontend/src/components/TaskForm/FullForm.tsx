@@ -143,7 +143,8 @@ function FullForm({ onClose, onSuccess }: Props) {
 
             <FormField label="Категория" required>
               <CategoryCombobox
-                onChange={(category_id) => setFormData({ ...formData, category_id })}
+                allowCreate
+                onChange={(id) => setFormData({ ...formData, category_id: id ?? 0 })}
                 categoryId={formData.category_id}
               />
             </FormField>

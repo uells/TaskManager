@@ -44,4 +44,5 @@ export type TaskFilters = {
   date_from: string | null;
   date_to: string | null;
   id_user: number | null;
+  category_id: number | null;
 };
