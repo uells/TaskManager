@@ -2,12 +2,8 @@ import { useState } from "react";
 import { LogIn } from "lucide-react";
 import { useAuth } from "./AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
-
-const ERROR_MASSAGES: Record<number, string> = {
-  401: "Неверный логин или пароль",
-  422: "Неверный формат данных",
-  500: "Ошибка сервера, попробуйте позже",
-};
+import { login } from "@/api/auth";
+import { ApiError } from "@/api/client";
 
 function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -15,29 +11,23 @@ function LoginPage() {
   const [inputs, setInputs] = useState({ login: "", password: "" });
   const { token, setToken } = useAuth();
   const navigate = useNavigate();
+
   if (token) {
     return <Navigate to="/" />;
   }
 
   const handleSubmit = async () => {
-    const formData = new URLSearchParams();
-    formData.append("username", inputs.login);
-    formData.append("password", inputs.password);
-
-    const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formData,
-    });
-    if (!response.ok) {
-      setError(ERROR_MASSAGES[response.status] ?? "Что-то пошло не так");
-      return;
+    try {
+      const accessToken = await login(inputs.login, inputs.password);
+      setToken(accessToken);
+      navigate("/");
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError("Ошибка сети");
+      }
     }
-    const jwt = await response.json();
-    setToken(jwt.access_token);
-    navigate("/");
   };
 
   return (

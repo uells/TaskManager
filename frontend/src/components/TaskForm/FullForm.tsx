@@ -5,7 +5,6 @@ import SectionCard from "../ui/SectionCard";
 import FormField from "./FormField";
 import StatusSelector from "./StatusSelector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { useAuth } from "../auth/AuthContext";
 import CategoryCombobox from "./CategoryCombobox";
 import { parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +15,9 @@ import { Input } from "../ui/input";
 import DateRangePicker from "./DateRangePicker";
 import DateTrigger from "./DateTrigger";
 import { formatDayMonth } from "@/utils/date";
+import { useApi } from "@/hooks/useApi";
+import { createTask } from "@/api/tasks";
+import { ApiError } from "@/api/client";
 
 type Props = {
   onClose: () => void;
@@ -54,40 +56,33 @@ const EMPTY_FORM: TaskCreate = {
 
 function FullForm({ onClose, onSuccess }: Props) {
   const [checked, setChecked] = useState(false);
-  const { token } = useAuth();
   const [formData, setFormData] = useState<TaskCreate>(EMPTY_FORM);
+  const { authRequest } = useApi();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
+    setError(null);
     try {
       const invalid = VALIDATION_RULES.find((rule) => !formData[rule.field]);
       if (invalid) {
-        console.log(invalid.message);
+        setError(invalid.message);
         return;
       }
       if (formData.user_ids.length === 0) {
-        console.log("Не выбраны исполнители");
+        setError("Не выбраны исполнители");
         return;
       }
 
-      const res = await fetch("http://localhost:8000/api/v1/task", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        console.error(res.status);
-        return;
-      }
-      await res.json();
+      await createTask(formData, authRequest);
       setFormData(EMPTY_FORM);
       setChecked(false);
       onSuccess();
     } catch (e) {
-      console.error(e);
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError("Не удалось добавить задачу");
+      }
     }
   };
 
@@ -243,7 +238,8 @@ function FullForm({ onClose, onSuccess }: Props) {
           </SectionCard>
         </div>
 
-        <div className="h-16 px-3 flex items-center border-t border-gray-100">
+        <div className="h-16 px-3 relative flex flex-col justify-center gap-y-2 items-start border-t border-gray-100">
+          {error && <p className="text-red-500 text-sm absolute text-left -top-7 l-0">{error}</p>}
           <button
             onClick={handleSubmit}
             className="w-full cursor-pointer bg-gray-900 text-white font-semibold rounded-md p-2 hover:bg-gray-800 active:bg-gray-700 transition-colors"
