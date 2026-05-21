@@ -6,9 +6,11 @@ import TaskCard from "./TaskCard/TaskCard";
 type Props = {
   total: number;
   tasks: Task[];
+  onTaskDeleted: () => void;
+  onEditTask: (task: Task) => void;
 };
 
-function TaskBoard({ tasks, total }: Props) {
+function TaskBoard({ tasks, total, onTaskDeleted, onEditTask }: Props) {
   const view = localStorage.getItem("cardView") === "true";
   const [isCardView, setCardView] = useState(view);
 
@@ -17,7 +19,7 @@ function TaskBoard({ tasks, total }: Props) {
       <div className="mb-5 flex justify-between items-center">
         <div className="flex items-center gap-3.5 ">
           <h2 className="text-gray-900 text-base font-semibold">Список задач</h2>
-          <span className="text-sm w-6 h-6 border border-gray-300 rounded-full flex justify-center items-center">
+          <span className="text-sm w-8 h-8 border border-gray-300 rounded-full flex justify-center items-center">
             {total}
           </span>
         </div>
@@ -51,7 +53,7 @@ function TaskBoard({ tasks, total }: Props) {
         >
           <div className="justify-start grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4 gap-x-3 gap-y-5 py-0.5 pr-4">
             {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard onEdit={onEditTask} onDelete={onTaskDeleted} key={task.id} task={task} />
             ))}
           </div>
         </div>

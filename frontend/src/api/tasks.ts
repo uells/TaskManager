@@ -31,3 +31,24 @@ export async function createTask(formdata: TaskCreate, authRequest: AuthRequest)
   });
   return data;
 }
+
+export async function deleteTask(id: number, authRequest: AuthRequest): Promise<void> {
+  await authRequest<void>(`/task/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function updateTask(
+  id: number,
+  updatedInfo: TaskCreate,
+  authRequest: AuthRequest,
+): Promise<Task> {
+  const data = await authRequest<Task>(`/task/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updatedInfo),
+  });
+  return data;
+}

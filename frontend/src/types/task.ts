@@ -17,7 +17,7 @@ export type Task = {
   name: string;
   description: string;
   link: string | null;
-  channel: string;
+  channel: TaskChannel;
   status: TaskStatus;
   id_parent_task: number | null;
   category: Category | null;
@@ -46,3 +46,21 @@ export type TaskFilters = {
   id_user: number | null;
   category_id: number | null;
 };
+
+export function taskToFormData(task: Task): TaskCreate {
+  return {
+    name: task.name,
+    description: task.description,
+    author: task.author,
+    date_begin: task.date_begin,
+    date_plan_end: task.date_plan_end,
+    date_fact_end: task.date_fact_end,
+    status: task.status,
+    channel: task.channel,
+    category_id: task.category?.id ?? 0,        
+    user_ids: task.users.map((u) => u.id),     
+    link: task.link ?? "",
+    id_parent_task: task.id_parent_task,
+  };
+}
+

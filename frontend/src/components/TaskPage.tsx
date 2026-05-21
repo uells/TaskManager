@@ -1,7 +1,7 @@
 import Pagination from "./ui/Pagination";
 import TaskBoard from "./TaskBoard";
 import FullForm from "./TaskForm/FullForm";
-import type { TaskFilters } from "../types/task";
+import type { Task, TaskFilters } from "../types/task";
 import { useState } from "react";
 import { ListPlus } from "lucide-react";
 import FiltersBar from "./Filter/FiltersBar";
@@ -17,11 +17,17 @@ function TaskPage() {
   });
   const [addFormIsOpen, setAddFormIsOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const LIMIT = 8;
-  const { tasks, total, loading, error, refetch } = useTask(page, LIMIT, filters);
+  const [limit, setLimit] = useState(8);
+  const { tasks, total, loading, error, refetch } = useTask(page, limit, filters);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const handleFilterChange = (newFilter: TaskFilters) => {
     setFilters(newFilter);
+    setPage(1);
+  };
+
+  const handleLimitChange = (limit: number) => {
+    setLimit(limit);
     setPage(1);
   };
 
@@ -33,10 +39,35 @@ function TaskPage() {
     <div className="flex h-screen">
       <div className="flex flex-col flex-1 min-h-0">
         <FiltersBar filters={filters} onChange={handleFilterChange} />
-        <TaskBoard total={total} tasks={tasks} />
-        <Pagination total={total} limit={LIMIT} page={page} onPageChange={setPage} />
+        <TaskBoard
+          onEditTask={setEditingTask}
+          onTaskDeleted={refetch}
+          total={total}
+          tasks={tasks}
+        />
+        <Pagination
+          total={total}
+          limit={limit}
+          page={page}
+          onPageChange={setPage}
+          onLimitChange={handleLimitChange}
+        />
       </div>
-      {!addFormIsOpen ? (
+      {addFormIsOpen || editingTask ? (
+        <FullForm
+          key={editingTask?.id ?? "new"}
+          task={editingTask ?? undefined}
+          onSuccess={() => {
+            setAddFormIsOpen(false);
+            setEditingTask(null);
+            refetch();
+          }}
+          onClose={() => {
+            setAddFormIsOpen(false);
+            setEditingTask(null);
+          }}
+        />
+      ) : (
         <button
           className="border-top border-gray-400 cursor-pointer 
       shadow-md w-15 relative z-10 flex items-center justify-center"
@@ -48,8 +79,6 @@ function TaskPage() {
             <ListPlus /> Добавить
           </span>
         </button>
-      ) : (
-        <FullForm onSuccess={refetch} onClose={() => setAddFormIsOpen(false)} />
       )}
     </div>
   );

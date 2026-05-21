@@ -29,6 +29,8 @@ function CategoryCombobox({ categoryId, onChange, allowCreate = false }: Props) 
     const load = async () => {
       try {
         const categories = await getCategories(authRequest);
+        const selected = categories.find((c: Category) => c.id === categoryId)?.name ?? "";
+        setInputValue(selected);
         setCategories(categories);
       } catch (e) {
         if (e instanceof ApiError) {
@@ -56,6 +58,7 @@ function CategoryCombobox({ categoryId, onChange, allowCreate = false }: Props) 
       }
     }
   };
+
   return (
     <Combobox
       value={categories.find((category: Category) => category.id === categoryId) ?? null}

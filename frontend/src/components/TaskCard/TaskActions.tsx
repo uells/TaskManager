@@ -1,8 +1,26 @@
+import { deleteTask } from "@/api/tasks";
+import { useApi } from "@/hooks/useApi";
 import { SquarePen, Trash2, Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-function TaskActions() {
+type Props = {
+  taskId: number;
+  onDelete: () => void;
+  onEdit: () => void;
+};
+
+function TaskActions({ taskId, onDelete, onEdit }: Props) {
   const [confirm, setConfirm] = useState(false);
+  const { authRequest } = useApi();
+
+  const handleDelete = async () => {
+    try {
+      await deleteTask(taskId, authRequest);
+      onDelete();
+    } catch (e) {
+      console.error(e);
+    }
+  };
   useEffect(() => {
     if (!confirm) return;
     const timeoutId = setTimeout(() => {
@@ -18,7 +36,7 @@ function TaskActions() {
     >
       {!confirm && (
         <>
-          <button className="cursor-pointer">
+          <button onClick={onEdit} className="cursor-pointer">
             <SquarePen size={18} className="text-gray-400" />
           </button>
           <button onClick={() => setConfirm(true)} className="cursor-pointer">
@@ -28,7 +46,7 @@ function TaskActions() {
       )}
       {confirm && (
         <>
-          <button className="cursor-pointer relative z-1">
+          <button onClick={handleDelete} className="cursor-pointer relative z-1">
             <Check className="text-green-400" size={18} />
           </button>
           <button onClick={() => setConfirm(false)} className="cursor-pointer relative z-1">

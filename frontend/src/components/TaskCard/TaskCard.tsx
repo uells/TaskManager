@@ -9,6 +9,8 @@ import { Mail, Tag, CornerDownRight } from "lucide-react";
 
 type Props = {
   task: Task;
+  onDelete: () => void;
+  onEdit: (task: Task) => void;
 };
 
 const STATUS_BORDER: Record<string, string> = {
@@ -16,7 +18,7 @@ const STATUS_BORDER: Record<string, string> = {
   Завершено: "border-l-green-500",
 };
 
-function TaskCard({ task }: Props) {
+function TaskCard({ task, onDelete, onEdit }: Props) {
   const borderColor = STATUS_BORDER[task.status] || "border-l-gray-300";
 
   return (
@@ -30,7 +32,7 @@ function TaskCard({ task }: Props) {
           <Chip text={task.channel} icon={<Mail size={10} />} />
           {task.category && <Chip text={task.category.name} icon={<Tag size={10} />} />}
         </div>
-        <TaskActions />
+        <TaskActions onEdit={() => onEdit(task)} taskId={task.id} onDelete={onDelete} />
       </div>
 
       <h3 className="text-gray-900 text-sm font-semibold leading-[1.45]">{task.description}</h3>

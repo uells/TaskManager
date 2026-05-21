@@ -1,5 +1,11 @@
 import { PanelRightClose } from "lucide-react";
-import { TASK_CHANNELS, type TaskChannel, type TaskCreate } from "../../types/task";
+import {
+  TASK_CHANNELS,
+  taskToFormData,
+  type Task,
+  type TaskChannel,
+  type TaskCreate,
+} from "../../types/task";
 import { useState } from "react";
 import SectionCard from "../ui/SectionCard";
 import FormField from "./FormField";
@@ -16,12 +22,13 @@ import DateRangePicker from "./DateRangePicker";
 import DateTrigger from "./DateTrigger";
 import { formatDayMonth } from "@/utils/date";
 import { useApi } from "@/hooks/useApi";
-import { createTask } from "@/api/tasks";
+import { createTask, updateTask } from "@/api/tasks";
 import { ApiError } from "@/api/client";
 
 type Props = {
   onClose: () => void;
   onSuccess: () => void;
+  task?: Task;
 };
 
 type Rule = {
@@ -54,9 +61,9 @@ const EMPTY_FORM: TaskCreate = {
   id_parent_task: null,
 };
 
-function FullForm({ onClose, onSuccess }: Props) {
+function FullForm({ onClose, onSuccess, task }: Props) {
   const [checked, setChecked] = useState(false);
-  const [formData, setFormData] = useState<TaskCreate>(EMPTY_FORM);
+  const [formData, setFormData] = useState<TaskCreate>(task ? taskToFormData(task) : EMPTY_FORM);
   const { authRequest } = useApi();
   const [error, setError] = useState<string | null>(null);
 
@@ -73,7 +80,12 @@ function FullForm({ onClose, onSuccess }: Props) {
         return;
       }
 
-      await createTask(formData, authRequest);
+      if (task) {
+        await updateTask(task.id, formData, authRequest);
+      } else {
+        await createTask(formData, authRequest);
+      }
+
       setFormData(EMPTY_FORM);
       setChecked(false);
       onSuccess();
@@ -88,8 +100,10 @@ function FullForm({ onClose, onSuccess }: Props) {
 
   return (
     <aside className="h-screen shadow-md flex flex-col border-l border-gray-100 w-100">
-      <header className="flex justify-between items-center gap-x-4 py-2 px-4 border-b border-gray-100">
-        <h2 className="text-gray-500 text-sm uppercase font-medium tracking-wider">Создание</h2>
+      <header className="flex h-14.5 justify-between items-center gap-x-4 py-2 px-4 border-b border-gray-100">
+        <h2 className="text-gray-500 text-sm uppercase font-medium tracking-wider">
+          {task ? "Редактирование" : "Создание"}
+        </h2>
         <button
           type="button"
           onClick={onClose}
@@ -245,7 +259,7 @@ function FullForm({ onClose, onSuccess }: Props) {
             onClick={handleSubmit}
             className="w-full cursor-pointer bg-gray-900 text-white font-semibold rounded-md p-2 hover:bg-gray-800 active:bg-gray-700 transition-colors"
           >
-            + Создать задачу
+            {task ? "Сохранить" : "+ Создать задачу"}
           </button>
         </div>
 
