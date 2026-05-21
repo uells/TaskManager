@@ -24,7 +24,6 @@ export function UserCombobox({ userId, onChange }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Монтирование...");
     const load = async () => {
       try {
         const users = await getUsers(authRequest);
@@ -42,8 +41,8 @@ export function UserCombobox({ userId, onChange }: Props) {
   return (
     <Combobox
       items={users}
-      value={users.find((u) => u.id == userId) ?? null}
-      itemToStringLabel={(user) => shortenFullName(user.fio)}
+      value={users.find((u) => u.id === userId) ?? null}
+      itemToStringLabel={(user) => shortenFullName(user?.fio ?? "")}
       onValueChange={(user: User | null) => onChange(user?.id ?? null)}
     >
       <ComboboxInput placeholder="Исполнитель" showClear />

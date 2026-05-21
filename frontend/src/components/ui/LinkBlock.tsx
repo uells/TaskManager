@@ -10,7 +10,7 @@ function LinkBlock({ link }: Props) {
   };
 
   return (
-    <div className="py-0.5 px-2 bg-gray-200 rounded-md flex items-center gap-2 group border border-gray-300">
+    <div className="py-0.5 px-2 bg-gray-50 rounded-md flex items-center gap-2 group border border-gray-300">
       <Link2 className="text-gray-500" size={20} />
       <a
         href={link}
