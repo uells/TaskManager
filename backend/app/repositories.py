@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, delete
 from security import get_password_hash
 from models import Task, Category, User, RefreshToken
-from schemas import TaskCreate, CategoryCreate, UserCreate, RefreshTokenCreate, TaskUpdate, TaskFilter
+from schemas import TaskCreate, CategoryCreate, TaskGet, UserCreate, RefreshTokenCreate, TaskUpdate, TaskFilter, TaskPatch
 from sqlalchemy.orm import selectinload
 from datetime import date
 class TaskRepository:
@@ -46,12 +46,16 @@ class TaskRepository:
             query = query.where(Task.users.any(User.id == filter.id_user))
         if filter.status:
             query = query.where(Task.status == filter.status)
+        if filter.category_id:
+            query = query.where(Task.category_id == filter.category_id)
         return query
     
     async def get_list(self, limit: int, offset: int, filter: TaskFilter):
         query = select(Task).options(selectinload(Task.category), selectinload(Task.users))
         query = self._apply_filters(query, filter)
+        query = query.order_by(Task.date_begin.desc())
         query = query.limit(limit).offset(offset)
+
 
         query_count = select(func.count()).select_from(Task)
         query_count = self._apply_filters(query_count, filter)
@@ -78,7 +82,7 @@ class TaskRepository:
         task_data = task.model_dump()
         db_task = await self.get(id_task)
         if db_task is None:
-            raise HTTPException(404, "Task not foud")
+            raise HTTPException(404, "Task not found")
 
         user_ids = task_data.pop("user_ids")
         query = select(User).where(User.id.in_(user_ids))
@@ -86,9 +90,42 @@ class TaskRepository:
         users = users.scalars().all()
         if (len(users) != len(user_ids)):
             raise HTTPException(404, "Some users not found")
+        category_id = task_data.pop("category_id")
+        category =  await self.session.get(Category, category_id)
+        if category is None:
+            raise HTTPException(404, "Category not found")
+        task_data["category"] = category
         for key, value in task_data.items():
             setattr(db_task, key, value)
+
         db_task.users = users
+        await self.session.commit()
+        return db_task
+    
+    async def patch(self, id_task: int, task: TaskPatch):
+        db_task = await self.get(id_task)
+
+        if db_task is None:
+            raise HTTPException(404, "Task not found")
+        task_data = task.model_dump(exclude_unset=True)
+        if "user_ids" in task_data:
+            user_ids = task_data.pop("user_ids")
+            query = select(User).where(User.id.in_(user_ids))
+            result = await self.session.execute(query)
+            users = result.scalars().all()
+            if (len(users) != len(user_ids)):
+                raise HTTPException(404, "Some users not found")
+            db_task.users = users
+        if "category_id" in task_data:
+            category_id = task_data.pop("category_id")
+            category =  await self.session.get(Category, category_id)
+            if category is None:
+                raise HTTPException(404, "Category not found")
+            task_data["category"] = category
+
+        for key, value in task_data.items():
+            setattr(db_task, key, value)
+        
         await self.session.commit()
         return db_task
 

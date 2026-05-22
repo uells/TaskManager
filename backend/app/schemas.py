@@ -20,6 +20,20 @@ class TaskBase(BaseModel):
     status: str
     id_parent_task: int | None = None
 
+class TaskPatch(BaseModel):
+    date_begin: date | None = None
+    date_fact_end: date | None = None
+    date_plan_end: date | None = None
+    author: str | None = None
+    name: str | None = None
+    description: str | None = None
+    link: str | None = None
+    channel: str | None = None
+    status: str | None = None
+    id_parent_task: int | None = None
+    user_ids: list[int] | None = None
+    category_id: int | None = None 
+
 class TaskCreate(TaskBase):
     user_ids: list[int]
     category_id: int
@@ -60,6 +74,7 @@ class TaskFilter(BaseModel):
     date_to: date | None = None
     id_user: int | None = None
     status: str | None = None
+    category_id: int | None = None
 
 class TaskListResponse(BaseModel):
     total: int
