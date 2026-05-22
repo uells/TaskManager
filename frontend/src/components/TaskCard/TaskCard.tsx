@@ -1,4 +1,4 @@
-import type { Task } from "../../types/task";
+import { nextStatus, type Task, type TaskStatus } from "../../types/task";
 import StatusChip from "./StatusChip";
 import Chip from "../ui/Chip";
 import LinkBlock from "../ui/LinkBlock";
@@ -11,6 +11,7 @@ type Props = {
   task: Task;
   onDelete: () => void;
   onEdit: (task: Task) => void;
+  onStatusChange: (id: number, status: TaskStatus) => Promise<void>;
 };
 
 const STATUS_BORDER: Record<string, string> = {
@@ -18,7 +19,7 @@ const STATUS_BORDER: Record<string, string> = {
   Завершено: "border-l-green-500",
 };
 
-function TaskCard({ task, onDelete, onEdit }: Props) {
+function TaskCard({ task, onDelete, onEdit, onStatusChange }: Props) {
   const borderColor = STATUS_BORDER[task.status] || "border-l-gray-300";
 
   return (
@@ -28,7 +29,10 @@ function TaskCard({ task, onDelete, onEdit }: Props) {
     >
       <div className="grid grid-cols-[1fr_auto] items-start gap-1">
         <div className="flex flex-wrap gap-2">
-          <StatusChip status={task.status} />
+          <StatusChip
+            onClick={() => onStatusChange(task.id, nextStatus(task.status))}
+            status={task.status}
+          />
           <Chip text={task.channel} icon={<Mail size={10} />} />
           {task.category && <Chip text={task.category.name} icon={<Tag size={10} />} />}
         </div>
@@ -41,7 +45,7 @@ function TaskCard({ task, onDelete, onEdit }: Props) {
       <div className="flex gap-3 flex-wrap">
         <DateLabel label="Нач" date={task.date_begin} />
         {task.date_plan_end && <DateLabel label="План" date={task.date_plan_end} />}
-        {task.date_plan_end && <DateLabel label="Факт" date={task.date_plan_end} />}
+        {task.date_fact_end && <DateLabel label="Факт" date={task.date_fact_end} />}
       </div>
       <div className="border-t border-gray-200 pt-2 grid grid-cols-2">
         <div className="flex flex-col justify-between">

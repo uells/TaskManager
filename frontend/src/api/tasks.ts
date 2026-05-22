@@ -1,4 +1,4 @@
-import type { Task, TaskCreate, TaskFilters } from "@/types/task";
+import type { Task, TaskCreate, TaskFilters, TaskStatus } from "@/types/task";
 import type { AuthRequest } from "../hooks/useApi";
 
 export async function getTask(
@@ -49,6 +49,21 @@ export async function updateTask(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(updatedInfo),
+  });
+  return data;
+}
+
+export async function updateStatus(
+  id: number,
+  newStatus: TaskStatus,
+  authRequest: AuthRequest,
+): Promise<Task> {
+  const data = await authRequest<Task>(`/task/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status: newStatus }),
   });
   return data;
 }

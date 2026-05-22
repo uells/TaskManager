@@ -18,7 +18,7 @@ function TaskPage() {
   const [addFormIsOpen, setAddFormIsOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(8);
-  const { tasks, total, loading, error, refetch } = useTask(page, limit, filters);
+  const { tasks, total, loading, error, refetch, changeStatus } = useTask(page, limit, filters);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const handleFilterChange = (newFilter: TaskFilters) => {
@@ -42,6 +42,7 @@ function TaskPage() {
         <TaskBoard
           onEditTask={setEditingTask}
           onTaskDeleted={refetch}
+          onStatusChange={changeStatus}
           total={total}
           tasks={tasks}
         />

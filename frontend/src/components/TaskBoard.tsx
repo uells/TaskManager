@@ -1,5 +1,5 @@
 import { LayoutGrid, TableProperties } from "lucide-react";
-import type { Task } from "../types/task";
+import type { Task, TaskStatus } from "../types/task";
 import { useState } from "react";
 import TaskCard from "./TaskCard/TaskCard";
 
@@ -8,9 +8,10 @@ type Props = {
   tasks: Task[];
   onTaskDeleted: () => void;
   onEditTask: (task: Task) => void;
+  onStatusChange: (id: number, status: TaskStatus) => Promise<void>;
 };
 
-function TaskBoard({ tasks, total, onTaskDeleted, onEditTask }: Props) {
+function TaskBoard({ tasks, total, onTaskDeleted, onEditTask, onStatusChange }: Props) {
   const view = localStorage.getItem("cardView") === "true";
   const [isCardView, setCardView] = useState(view);
 
@@ -53,7 +54,13 @@ function TaskBoard({ tasks, total, onTaskDeleted, onEditTask }: Props) {
         >
           <div className="justify-start grid grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4 gap-x-3 gap-y-5 py-0.5 pr-4">
             {tasks.map((task) => (
-              <TaskCard onEdit={onEditTask} onDelete={onTaskDeleted} key={task.id} task={task} />
+              <TaskCard
+                onStatusChange={onStatusChange}
+                onEdit={onEditTask}
+                onDelete={onTaskDeleted}
+                key={task.id}
+                task={task}
+              />
             ))}
           </div>
         </div>

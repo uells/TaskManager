@@ -1,6 +1,6 @@
-import type { Task, TaskFilters } from "@/types/task";
+import type { Task, TaskFilters, TaskStatus } from "@/types/task";
 import { useApi } from "./useApi";
-import { getTask } from "@/api/tasks";
+import { getTask, updateStatus } from "@/api/tasks";
 import { ApiError } from "@/api/client";
 import { useEffect, useState } from "react";
 
@@ -12,6 +12,19 @@ export function useTask(page: number, limit: number, filters: TaskFilters) {
   const [refetchIndex, setRefetchIndex] = useState(0);
 
   const { authRequest } = useApi();
+
+  const changeStatus = async (id: number, status: TaskStatus) => {
+    try {
+      const updated = await updateStatus(id, status, authRequest);
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError("Не обновить статус");
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -37,5 +50,5 @@ export function useTask(page: number, limit: number, filters: TaskFilters) {
   }, [filters, limit, page, refetchIndex]);
 
   const refetch = () => setRefetchIndex((n) => n + 1);
-  return { tasks, total, loading, error, refetch };
+  return { tasks, total, loading, error, refetch, changeStatus };
 }

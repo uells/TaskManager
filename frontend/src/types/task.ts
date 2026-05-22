@@ -57,10 +57,14 @@ export function taskToFormData(task: Task): TaskCreate {
     date_fact_end: task.date_fact_end,
     status: task.status,
     channel: task.channel,
-    category_id: task.category?.id ?? 0,        
-    user_ids: task.users.map((u) => u.id),     
+    category_id: task.category?.id ?? 0,
+    user_ids: task.users.map((u) => u.id),
     link: task.link ?? "",
     id_parent_task: task.id_parent_task,
   };
 }
 
+export function nextStatus(currentStatus: TaskStatus) {
+  const newStatusIndex = (TASK_STATUSES.indexOf(currentStatus) + 1) % TASK_STATUSES.length;
+  return TASK_STATUSES[newStatusIndex];
+}
