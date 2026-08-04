@@ -1,0 +1,206 @@
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select, delete
+from security import get_password_hash
+from models import Task, Category, User, RefreshToken
+from schemas import TaskCreate, CategoryCreate, TaskGet, UserCreate, RefreshTokenCreate, TaskUpdate, TaskFilter, TaskPatch
+from sqlalchemy.orm import selectinload
+from datetime import date
+class TaskRepository:
+    session: AsyncSession
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def create(self, task: TaskCreate):
+        task_data = task.model_dump()
+
+        user_ids = task_data.pop("user_ids") # будет всегда хотя бы 1 иначе pydantic ошибка
+        query = select(User).where(User.id.in_(user_ids))
+        users = await self.session.execute(query)
+        users = users.scalars().all()
+
+        if (len(users) != len(user_ids)):
+            raise HTTPException(404, "Some users not found")
+        
+        task_data["users"] = users
+        db_task = Task(**task_data)
+
+        self.session.add(db_task)
+        await self.session.commit()
+
+        query = select(Task).where(Task.id == db_task.id).options(selectinload(Task.category), selectinload(Task.users))
+        result = await self.session.execute(query)
+        return result.scalar_one()
+    
+    async def get(self, task_id: int):
+        query = select(Task).where(Task.id == task_id).options(selectinload(Task.category), selectinload(Task.users))
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
+    def _apply_filters(self, query, filter: TaskFilter):
+        if filter.date_from:
+            query = query.where(Task.date_begin >= filter.date_from)
+        if filter.date_to:
+            query = query.where(Task.date_begin <= filter.date_to)
+        if filter.id_user:
+            query = query.where(Task.users.any(User.id == filter.id_user))
+        if filter.status:
+            query = query.where(Task.status == filter.status)
+        if filter.category_id:
+            query = query.where(Task.category_id == filter.category_id)
+        return query
+    
+    async def get_list(self, limit: int, offset: int, filter: TaskFilter):
+        query = select(Task).options(selectinload(Task.category), selectinload(Task.users))
+        query = self._apply_filters(query, filter)
+        query = query.order_by(Task.date_begin.desc())
+        query = query.limit(limit).offset(offset)
+
+
+        query_count = select(func.count()).select_from(Task)
+        query_count = self._apply_filters(query_count, filter)
+
+        result_count = await self.session.execute(query_count)
+        result = await self.session.execute(query)
+
+        return (result.scalars().all(), result_count.scalar())
+    
+    async def get_authors(self, search: str, limit: int = 10):
+        query = select(Task.author).where(Task.author.ilike(f"{search}%")).distinct().limit(limit)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+    
+    async def delete(self, id_task: int):
+        db_task =  await self.get(id_task)
+        if db_task is None:
+            return False
+        await self.session.delete(db_task)
+        await self.session.commit()
+        return True
+    
+    async def update(self, id_task: int, task: TaskUpdate):
+        task_data = task.model_dump()
+        db_task = await self.get(id_task)
+        if db_task is None:
+            raise HTTPException(404, "Task not found")
+
+        user_ids = task_data.pop("user_ids")
+        query = select(User).where(User.id.in_(user_ids))
+        users = await self.session.execute(query)
+        users = users.scalars().all()
+        if (len(users) != len(user_ids)):
+            raise HTTPException(404, "Some users not found")
+        category_id = task_data.pop("category_id")
+        category =  await self.session.get(Category, category_id)
+        if category is None:
+            raise HTTPException(404, "Category not found")
+        task_data["category"] = category
+        for key, value in task_data.items():
+            setattr(db_task, key, value)
+
+        db_task.users = users
+        await self.session.commit()
+        return db_task
+    
+    async def patch(self, id_task: int, task: TaskPatch):
+        db_task = await self.get(id_task)
+
+        if db_task is None:
+            raise HTTPException(404, "Task not found")
+        task_data = task.model_dump(exclude_unset=True)
+        if "user_ids" in task_data:
+            user_ids = task_data.pop("user_ids")
+            query = select(User).where(User.id.in_(user_ids))
+            result = await self.session.execute(query)
+            users = result.scalars().all()
+            if (len(users) != len(user_ids)):
+                raise HTTPException(404, "Some users not found")
+            db_task.users = users
+        if "category_id" in task_data:
+            category_id = task_data.pop("category_id")
+            category =  await self.session.get(Category, category_id)
+            if category is None:
+                raise HTTPException(404, "Category not found")
+            task_data["category"] = category
+
+        for key, value in task_data.items():
+            setattr(db_task, key, value)
+        
+        await self.session.commit()
+        return db_task
+
+class CategoryRepository:
+    session: AsyncSession
+    def __init__(self, session: AsyncSession):
+        self.session = session
+    
+    async def create(self, category_data: CategoryCreate):
+        db_category = Category(**category_data.model_dump())
+        self.session.add(db_category)
+        await self.session.commit()
+        await self.session.refresh(db_category)
+        return db_category
+    
+    async def get_all(self):
+        query = select(Category)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+    
+    async def delete(self, id_category: int):
+        query = delete(Category).where(Category.id == id_category)
+        result = await self.session.execute(query)
+        if result.rowcount == 0:
+            return False
+        await self.session.commit()
+        return True
+    
+class UserRepository():
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, user: UserCreate):
+        user_data = user.model_dump()
+        password = user_data.pop("password")
+        password_hash = get_password_hash(password)
+        db_user = User(**user_data, password_hash = password_hash)
+        self.session.add(db_user)
+        await self.session.commit()
+        await self.session.refresh(db_user)
+        return db_user
+    
+    async def get_by_id(self, user_id: int):
+        query = select(User).where(User.id == user_id)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+    
+    async def get_by_username(self, username: str):
+        query = select(User).where(User.username == username)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+    
+    async def get_all(self):
+        query = select(User)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+
+class RefreshTokenRepository():
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, token: RefreshTokenCreate):
+        token = token.model_dump()
+        db_token = RefreshToken(**token)
+        self.session.add(db_token)
+        await self.session.commit()
+        await self.session.refresh(db_token)
+        return db_token
+
+    async def get(self, token: str):
+        query = select(RefreshToken).where(RefreshToken.token == token)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+    
+    async def delete(self, token: str):
+        query = delete(RefreshToken).where(RefreshToken.token == token)
+        await self.session.execute(query)
+        await self.session.commit()

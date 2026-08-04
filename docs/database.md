@@ -1,8 +1,10 @@
 ```mermaid
 erDiagram
     USERS ||--o{ CO_EXECUTORS : ""
+    USERS ||--o{ REFRESH_TOKENS : ""
     TASKS ||--|{ CO_EXECUTORS : ""
     CATEGORIES |o--o{ TASKS : ""
+    
 
     USERS {
         id int "Primary key"
@@ -37,5 +39,11 @@ erDiagram
         id int "Primary key"
         id_task int "id задачи"
         id_user int "id исполнителя"
+    }
+
+    REFRESH_TOKENS {
+        id int "Primary key"
+        id_user int "id пользователя"
+        token str "refresh токен пользователя"
     }
 ```
